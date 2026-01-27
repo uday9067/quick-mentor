@@ -1,0 +1,284 @@
+/* ================= PROFILE PAGE ================= */
+
+/* ================= BACKGROUND ================= */
+
+body {
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  color: #f5f6ff;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated gradient background */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 0% 0%, #1a73ff 0, transparent 55%),
+    radial-gradient(circle at 100% 0%, #ff2ea6 0, transparent 55%),
+    radial-gradient(circle at 50% 100%, #00ffc3 0, transparent 55%), #050818;
+  animation: moveGradient 18s ease-in-out infinite alternate;
+  z-index: -2;
+}
+
+@keyframes moveGradient {
+  0% {
+    background-position: 0% 0%, 100% 0%, 50% 100%;
+  }
+  100% {
+    background-position: 20% 10%, 80% 0%, 50% 90%;
+  }
+}
+
+/* Dark overlay for depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+      circle at 20% 0,
+      rgba(0, 0, 0, 0.7),
+      transparent 50%
+    ),
+    radial-gradient(circle at 80% 100%, rgba(0, 0, 0, 0.7), transparent 55%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.profile-container {
+  max-width: 500px;
+  margin: 120px auto 60px;
+  padding: 28px 26px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(10, 20, 60, 0.96),
+    rgba(7, 12, 40, 0.94)
+  );
+
+  border-radius: 24px;
+  border: 1px solid rgba(132, 179, 255, 0.55);
+
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 255, 204, 0.18);
+}
+
+/* Title */
+.profile-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Labels */
+.profile-container label {
+  display: block;
+  margin: 8px 0 4px;
+
+  font-size: 13px;
+  color: #b9c6ff;
+}
+
+/* Inputs */
+.profile-container input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(140, 185, 255, 0.55);
+
+  background: rgba(4, 8, 28, 0.96);
+  color: #f5f6ff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .profile-container input {
+    padding: 11px 13px;
+    font-size: 13px;
+    border-radius: 18px;
+  }
+}
+
+
+.profile-container input::placeholder {
+  color: #9da9ff;
+}
+
+.profile-container input:focus {
+  border-color: #00ffc3;
+  box-shadow: 0 0 12px rgba(0, 255, 204, 0.45);
+}
+
+/* Disabled input (Roll number) */
+.profile-container input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Action buttons */
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+/* Save button */
+.profile-actions button {
+  flex: 1;
+  padding: 12px 0;
+
+  border-radius: 999px;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  background: linear-gradient(120deg, #00ffc3, #4fa3ff);
+  color: #020712;
+
+  box-shadow: 0 0 16px rgba(0, 255, 204, 0.45);
+  transition: 0.2s ease;
+}
+
+.profile-actions button:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Cancel link */
+.profile-actions a {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+
+  border-radius: 999px;
+  text-decoration: none;
+
+  background: rgba(255, 80, 80, 0.22);
+  border: 1px solid rgba(255, 80, 80, 0.55);
+  color: #fff;
+
+  transition: 0.2s ease;
+}
+
+.profile-actions a:hover {
+  background: rgba(255, 80, 80, 0.45);
+  box-shadow: 0 0 14px rgba(255, 80, 80, 0.55);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .profile-container {
+    max-width: 90%;
+    margin: 100px auto 40px;
+    padding: 22px 20px;
+    border-radius: 20px;
+  }
+
+  .profile-container h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .profile-container label {
+    font-size: 12px;
+    margin: 6px 0 3px;
+  }
+
+  .profile-container input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .profile-actions {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .profile-actions button,
+  .profile-actions a {
+    padding: 10px 0;
+    font-size: 13px;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 720px) {
+  .profile-container {
+    max-width: 95%;
+    margin: 90px auto 30px;
+    padding: 18px 16px;
+  }
+
+  .profile-container h2 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .profile-container label {
+    font-size: 11px;
+    margin: 5px 0 2px;
+  }
+
+  .profile-container input {
+    padding: 9px 11px;
+    margin-bottom: 9px;
+    font-size: 12px;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .profile-actions button,
+  .profile-actions a {
+    padding: 11px 0;
+    font-size: 12px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    max-width: 100%;
+    margin: 80px 10px 20px;
+    padding: 16px 14px;
+  }
+
+  .profile-container h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .profile-container label {
+    font-size: 10px;
+    margin: 4px 0 2px;
+  }
+
+  .profile-container input {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .profile-actions {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .profile-actions button,
+  .profile-actions a {
+    padding: 10px 0;
+    font-size: 11px;
+  }
+}

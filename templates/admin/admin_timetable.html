@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Admin - Timetable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/admin_dashboard.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="admin-body">
+    <div class="bg-gradient"></div>
+
+    <header class="admin-nav">
+        <div class="nav-left">
+            <span class="nav-logo-text">Admin Panel</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('admin.admin_dashboard') }}">Overview</a>
+            <a href="{{ url_for('admin.admin_students') }}">Students</a>
+            <a href="{{ url_for('admin.admin_timetable') }}" class="active">Timetable</a>
+            <a href="{{ url_for('admin.admin_fees') }}">Fees</a>
+            <a href="{{ url_for('admin.admin_logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-area">
+            {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h1>Timetable</h1>
+
+        <section class="panel">
+            <h2>Add Timetable Entry</h2>
+            <form method="post" action="{{ url_for('admin.admin_timetable_add') }}" class="simple-form">
+                <input type="text" name="day" placeholder="Day (e.g., Monday)" required>
+                <input type="date" name="class_date" required>
+                <input type="text" name="start_time" placeholder="Start (HH:MM)" required>
+                <input type="text" name="end_time" placeholder="End (HH:MM)" required>
+                <input type="text" name="subject" placeholder="Subject" required>
+                <input type="text" name="instructor" placeholder="Instructor" required>
+                <input type="text" name="location" placeholder="Location" required>
+                <button type="submit">Add</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Upload Timetable CSV</h2>
+            <p class="subtitle">
+                CSV columns: <code>Day,Date,start_time,end_time,subject,instructor,location</code>
+            </p>
+            <form method="post" action="{{ url_for('admin.admin_timetable_upload') }}" enctype="multipart/form-data"
+                class="simple-form">
+                <input type="file" name="file" accept=".csv" required>
+                <button type="submit">Upload CSV</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Current Timetable</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+
+                            <th>Day</th>
+                            <th>Date</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Subject</th>
+                            <th>Instructor</th>
+                            <th>Location</th>
+                            <th>Action</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in timetable %}
+                        <tr>
+                            <td>{{ t.day }}</td>
+                            <td>{{ t.class_date }}</td>
+                            <td>{{ t.start_time }}</td>
+                            <td>{{ t.end_time }}</td>
+                            <td>{{ t.subject }}</td>
+                            <td>{{ t.instructor }}</td>
+                            <td>{{ t.location }}</td>
+                            <td style="display:flex; gap:6px;">
+                                <!-- ✏️ Edit (opens modal, no new page) -->
+                                <button class="btn-small" onclick="openEditModal(
+                                '{{ t.id }}',
+                                '{{ t.day }}',
+                                '{{ t.class_date }}',
+                                '{{ t.start_time }}',
+                                '{{ t.end_time }}',
+                                '{{ t.subject }}',
+                                '{{ t.instructor }}',
+                                '{{ t.location }}'
+                            )">
+                                    Edit
+                                </button>
+
+                                <!-- ❌ Delete -->
+                                <form method="POST" action="{{ url_for('admin.admin_timetable_delete', tid=t.id) }}"
+                                    onsubmit="return confirm('Delete this timetable entry?');">
+                                    <button class="danger">Delete</button>
+                                </form>
+                            </td>
+
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">No timetable entries.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <!-- ================= EDIT TIMETABLE MODAL ================= -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Timetable</h2>
+
+            <form method="POST" id="editForm">
+                <input type="hidden" id="edit_id">
+
+                <input type="text" name="day" id="edit_day" placeholder="Day" required>
+                <input type="date" name="class_date" id="edit_date" required>
+
+                <input type="time" name="start_time" id="edit_start" required>
+                <input type="time" name="end_time" id="edit_end" required>
+
+                <input type="text" name="subject" id="edit_subject" placeholder="Subject" required>
+                <input type="text" name="instructor" id="edit_instructor" placeholder="Instructor">
+                <input type="text" name="location" id="edit_location" placeholder="Location">
+
+                <div class="modal-actions">
+                    <button type="submit">Update</button>
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(id, day, date, start, end, subject, instructor, location) {
+            document.getElementById("editModal").style.display = "flex";
+
+            document.getElementById("edit_day").value = day;
+            document.getElementById("edit_date").value = date;
+            document.getElementById("edit_start").value = start;
+            document.getElementById("edit_end").value = end;
+            document.getElementById("edit_subject").value = subject;
+            document.getElementById("edit_instructor").value = instructor;
+            document.getElementById("edit_location").value = location;
+
+            document.getElementById("editForm").action =
+                "/admin/timetable/update/" + id;
+        }
+
+        function closeModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="text-decoration:none;
+        padding:6px 0px;
+        border-radius:10px;" class="simple-form" title="Back">
+        <button type="submit">← Back</button>
+    </a>
+</div>
+<h2>Chat Logs</h2>
+
+<table>
+    <tr>
+        <th>Roll</th>
+        <th>Intent</th>
+        <th>Source</th>
+        <th>Time</th>
+    </tr>
+
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.user_roll }}</td>
+        <td>{{ log.intent }}</td>
+        <td>{{ log.source }}</td>
+        <td>{{ log.created_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Assistant – Home</title>
+    <link rel="icon" type="image/png" sizes="98x98" href="{{ url_for('static', filename='images/home.png') }}">
+
+    <!-- Google Font (optional but looks premium) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+</head>
+
+<body>
+
+    {% if session.get("user_logged_in") %}
+    <a href="{{ url_for('profile.edit_profile') }}" class="profile-fab" title="Edit Profile">
+        <img src="static\images\profile_image.png" style="width: 35px; height: auto;">
+    </a>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Animated gradient background overlay -->
+    <div class="bg-gradient"></div>
+
+    <!-- Top Navigation -->
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <span class="nav-logo-text">QuickMentor</span>
+        </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="nav-burger">
+            <span></span><span></span><span></span>
+        </label>
+
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/chat">Chatbot</a>
+
+            {% if session.get('user_logged_in') %}
+            <span class="welcome-text">Hi, {{ session.get('user_name') }}</span>
+            <a href="/logout" class="pill-logout">Logout</a>
+            {% else %}
+
+            <div class="pill-auth">
+
+                <!-- LOGIN DROPDOWN -->
+                <div class="login-dropdown">
+                    <a class="login-btn">Login ▾</a>
+
+                    <div class="dropdown-menu">
+                        <a href="/login">Student Login</a>
+                        <a href="/admin/login">Admin Login</a>
+                    </div>
+                </div>
+
+                <span class="divider"></span>
+
+                <!-- REGISTER -->
+                <a href="/register">Register</a>
+            </div>
+            {% endif %}
+
+
+
+        </nav>
+
+    </header>
+
+    <!-- Hero Section -->
+    <main class="hero">
+        <section class="hero-content">
+            <p class="hero-kicker">SMART • MODERN • PERSONAL</p>
+            <h1 class="hero-title">
+                HELLO<br>
+                <span>STUDENT</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Your personal academic co-pilot.<br>
+                Ask doubts, check attendance, fees, timetable & more —
+                all in one smooth experience.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="/chat" class="btn primary">Start Chatting</a>
+
+            </div>
+        </section>
+
+        <section class="hero-card">
+            <div class="hero-card-inner">
+                <p class="card-label">LIVE ASSISTANT</p>
+                <p class="card-title">Always online, always ready.</p>
+                <p class="card-body">
+                    Get instant help with subjects, college information, and
+                    your academic records — powered by AI and your college database.
+                </p>
+                <div class="card-stats">
+                    <div>
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Availability</span>
+                    </div>
+                    <div>
+                        <span class="stat-number">AI</span>
+                        <span class="stat-label">Powered</span>
+                    </div>
+                    <div>
+                        <span class="stat-number">DB</span>
+                        <span class="stat-label">Integrated</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <script>
+        // Auto hide flash messages after 3 seconds
+        setTimeout(() => {
+            document.querySelectorAll(".flash-message").forEach(msg => {
+                msg.style.opacity = "0";
+                msg.style.transform = "translateY(-10px)";
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 3000);
+    </script>
+
+</body>
+
+</html>

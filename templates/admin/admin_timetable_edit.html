@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Edit Timetable</title>
+
+
+</head>
+
+<body class="admin-body">
+
+    <div class="admin-main panel">
+        <h2>Edit Timetable Entry</h2>
+
+        <form method="POST" action="{{ url_for('admin.admin_timetable_update', tid=t.id) }}" class="simple-form">
+
+            {# Determine selected day: prefer stored day, otherwise derive from class_date #}
+            {% set selected_day = t.day if t.day else (t.class_date.strftime('%A') if t.class_date else '') %}
+
+            <label for="day">Day</label>
+            <select name="day" id="day" required>
+                {% for d in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                <option value="{{ d }}" {% if d==selected_day %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="class_date">Date</label>
+            <input type="date" id="class_date" name="class_date"
+                value="{{ t.class_date.strftime('%Y-%m-%d') if t.class_date else '' }}" required>
+
+            <input type="time" name="start_time" value="{{ t.start_time.strftime('%H:%M') if t.start_time else '' }}"
+                required>
+            <input type="time" name="end_time" value="{{ t.end_time.strftime('%H:%M') if t.end_time else '' }}"
+                required>
+
+            <input type="text" name="subject" value="{{ t.subject }}" required>
+            <input type="text" name="instructor" value="{{ t.instructor }}">
+            <input type="text" name="location" value="{{ t.location }}">
+
+            <button type="submit">Update</button>
+            <a href="{{ url_for('admin.admin_timetable') }}" class="back-link">Cancel</a>
+        </form>
+    </div>
+
+</body>
+
+</html>

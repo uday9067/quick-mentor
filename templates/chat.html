@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Assistant – Chat</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/chat.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+
+<body>
+   
+    <div class="bg-gradient"></div>
+
+    <!-- Navbar (same style as home) -->
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <span class="nav-logo-text">Student Assistant</span>
+        </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="nav-burger">
+            <span></span><span></span><span></span>
+        </label>
+
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/chat">Chatbot</a>
+        </nav>
+    </header>
+
+    <!-- Chat container -->
+    <main class="chat-shell">
+        <section class="chat-card">
+            <header class="chat-header">
+                <div>
+                    <p class="chat-title">Student Assistant</p>
+                    <p class="chat-subtitle">
+                        Have a question? Just ask ✨
+                        I’m here to help with academics and more.
+
+                    </p>
+
+                </div>
+                <div class="chat-status">
+                    <span class="dot"></span>
+                    <span>Online</span>
+                </div>
+            </header>
+
+            <div id="chat-box" class="chat-box" aria-live="polite"></div>
+
+            <form id="chat-form" class="chat-input-row" autocomplete="off">
+                <input id="user-input" type="text"
+                    placeholder="Ask anything... e.g. 'Explain OS','Timetable','Fees'" required autofocus/>
+                <button type="submit">Send</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const chatForm = document.getElementById("chat-form");
+        const userInput = document.getElementById("user-input");
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendMessage(text, cls = "bot") {
+            const wrapper = document.createElement("div");
+            wrapper.className = "message " + cls;
+            wrapper.textContent = text;
+            chatBox.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const typing = document.createElement("div");
+            typing.className = "message bot typing-bubble";
+            typing.innerHTML = '<span></span><span></span><span></span>';
+            chatBox.appendChild(typing);
+            scrollToBottom();
+            return typing;
+        }
+
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const msg = userInput.value.trim();
+            if (!msg) return;
+
+            appendMessage(msg, "user");
+            userInput.value = "";
+
+            const typing = showTyping();
+
+            try {
+                const res = await fetch("/get_response", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" ,
+                            "X-Login-Token": sessionStorage.getItem("login_token")
+                    },
+                    
+                    body: JSON.stringify({ message: msg })
+                });
+
+                const data = await res.json();
+                typing.remove();
+                appendMessage(data.reply || "No response from server.", "bot");
+            } catch (err) {
+                typing.remove();
+                appendMessage("Error contacting server.", "bot");
+                console.error(err);
+            }
+        });
+
+        // Initial welcome
+        appendMessage("👋 Hey there! I’m your Student Assistant 🤖.\n\n" +
+                "• Ask me anything about your academics 📚\n" +
+                "• Get instant help with attendance, fees & timetable\n" +
+                "• Or just relax with a joke 😄", "bot");
+
+    </script>
+    
+
+</body>
+
+</html>

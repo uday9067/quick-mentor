@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Student Login</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="98x98" href="{{ url_for('static', filename='images/student_login.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+   
+
+</head>
+
+<body class="admin-body">
+    <div class="admin-login-shell">
+        <div class="admin-login-card">
+            <h1>Student Login</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-area">
+                {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="post" class="login-form">
+                <label>Roll Number</label>
+                <input type="text" name="roll" placeholder="(e.g.,25101)" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Paasword" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            
+            <a href="{{ url_for('user.user_register') }}" class="back-link">Create new account</a>
+
+            <br>
+            <a href="/forgot" class="back-link">Forgot Password?</a>
+            <br>
+            <a href="/" class="back-link">← Back to Home</a>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

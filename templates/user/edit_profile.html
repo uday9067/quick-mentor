@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/student_login.png') }}">
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_profile.css') }}">
+</head>
+<body>
+    
+    <div class="profile-container">
+        <h2>Edit Profile</h2>
+        <div class="bg-gradient"></div>
+    
+    
+        <form method="POST" action="{{ url_for('profile.update_profile') }}">
+    
+            <label>Roll Number</label>
+            <input type="text" value="{{ student.roll }}" readonly>
+            
+            <!-- Name (Editable) -->
+            <label>Name</label>
+            <input type="text" name="name" value="{{ student.name }}" required>
+            
+            <!-- Department (Read-only) -->
+            <label>Department</label>
+            <input type="text" value="{{ student.department }}" readonly>
+            
+            <!-- Year (Read-only) -->
+            <label>Year</label>
+            <input type="number" value="{{ student.year }}" readonly>
+            
+            <!-- Email (Editable) -->
+            <label>Email</label>
+            <input type="email" name="email" value="{{ student.email }}" required>
+            
+            <div class="profile-actions">
+                <button type="submit">Save Changes</button>
+                <a href="{{ url_for('main.home') }}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

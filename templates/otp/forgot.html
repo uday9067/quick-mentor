@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Forgot Password</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="admin-body">
+
+    <div class="admin-login-shell">
+        <div class="admin-login-card">
+
+            <h1>Forgot Password</h1>
+            <p class="subtitle">Enter your registered email to receive an OTP.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-area">
+                {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="login-form">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="example@gmail.com" required>
+
+                <button type="submit">Send OTP</button>
+            </form>
+
+            <a href="/login" class="back-link">← Back to Login</a>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Student Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/png" sizes="98x98" href="{{ url_for('static', filename='images/student_login.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+   
+</head>
+
+<body class="admin-body">
+    <div class="admin-login-shell">
+        <div class="admin-login-card">
+            <h1>Create Account</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-area">
+                {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="post" class="login-form">
+                <label>Roll Number</label>
+                <input type="text" name="roll" placeholder="Roll (e.g., 25101)" pattern="\d{5}""
+                    title="Roll number must be exactly 5 digits (e.g., 25101)" required>
+                <small style="color:#ffb3b3;">
+                    ⚠️ Roll number is permanent and cannot be changed later. Please enter carefully.
+                </small>
+
+
+                <label>Name</label>
+                <input type="text" name="name" required>
+
+                <label>Department</label>
+                <input type="text" name="department" required>
+
+                <label>Year</label>
+                <input type="number" name="year" min="1" max="4" required>
+
+                <label>Email</label>
+                <input type="email" name="email" required>
+
+                <label>Password</label>
+                <input type="password" name="password" required>
+
+                <button type="submit">Register</button>
+            </form>
+
+            <a href="{{ url_for('user.user_login') }}" class="back-link">← Go to login</a>
+        </div>
+    </div>
+
+    <script>
+        // Auto hide flash messages after 3 seconds
+        setTimeout(() => {
+            document.querySelectorAll(".flash-message").forEach(msg => {
+                msg.style.opacity = "0";
+                msg.style.transform = "translateY(-10px)";
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 3000);
+    </script>
+
+
+
+</body>
+
+</html>

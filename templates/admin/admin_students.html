@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Admin - Students</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/admin_dashboard.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="admin-body">
+    <div class="bg-gradient"></div>
+
+    <header class="admin-nav">
+        <div class="nav-left">
+            <span class="nav-logo-text">Admin Panel</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('admin.admin_dashboard') }}">Overview</a>
+            <a href="{{ url_for('admin.admin_students') }}" class="active">Students</a>
+            <a href="{{ url_for('admin.admin_timetable') }}">Timetable</a>
+            <a href="{{ url_for('admin.admin_fees') }}">Fees</a>
+            <a href="{{ url_for('admin.admin_logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-area">
+            {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h1>Students</h1>
+
+        <section class="panel">
+            <h2>Add Student</h2>
+            <p class="subtitle" style="color:#ffb3b3;">
+                ⚠️ Roll Number is a unique identifier. Please enter carefully — it cannot be changed later.
+            </p>
+
+            <form method="post" action="{{ url_for('admin.admin_students_add') }}" class="simple-form">
+                <input type="text" name="roll" placeholder="Roll (e.g., 25101)" pattern="\d{5}"
+                    title="Roll must be in format 25xxx." required>
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="text" name="department" placeholder="Department (e.g., CSE)" required>
+                <input type="number" name="year" placeholder="Year (e.g., 1,2,3)" min="1" max="5"
+                    oninput="this.value = Math.abs(this.value)" required>
+
+                <input type="number" step="0.01" name="attendance" placeholder="Attendance %" min="1" max="100" required >
+                <input type="email" name="email" placeholder="Email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                    title="Enter a valid email (must contain @ and .)" required>
+
+                <button type="submit">Add</button>
+            </form>
+        </section>
+        <div class="panel">
+            <h2>Upload Students (CSV)</h2>
+            <code>CSV columns:roll,name,department,year,email,attendance</code>
+        
+            <form action="{{ url_for('admin.admin_students_upload') }}" method="POST" enctype="multipart/form-data"
+                class="simple-form">
+        
+                <input type="file" name="file" accept=".csv" required>
+                <button type="submit">Upload CSV</button>
+        
+            </form>
+        </div>
+
+        <section class="panel">
+            <h2>Student List</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll</th>
+                            <th>Name</th>
+                            <th>Dept</th>
+                            <th>Year</th>
+                            <th>Attendance</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td>{{ s.roll }}</td>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.department }}</td>
+                            <td>{{ s.year }}</td>
+                            <td>{{ s.attendance }}</td>
+                            <td>{{ s.email }}</td>
+                            <td style="display:flex; gap:6px;">
+                                <!-- ✏️ Edit -->
+                                <button class="btn-small" onclick="openStudentEditModal(
+                                        '{{ s.id }}',
+                                        '{{ s.roll }}',
+                                        '{{ s.name }}',
+                                        '{{ s.department }}',
+                                        '{{ s.year }}',
+                                        '{{ s.attendance }}',
+                                        '{{ s.email }}'
+                                    )">
+                                    Edit
+                                </button>
+                            
+                                <!-- ❌ Delete -->
+                                <form method="post" action="{{ url_for('admin.admin_students_delete', sid=s.id) }}"
+                                    onsubmit="return confirm('Delete this student?');">
+                                    <button type="submit" class="danger">Delete</button>
+                                </form>
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8">No students in database.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <!-- ================= EDIT STUDENT MODAL ================= -->
+    <div id="studentEditModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Student</h2>
+    
+            <form method="POST" id="studentEditForm">
+                <input type="hidden" id="student_id">
+    
+                <input type="text" id="student_roll" readonly>
+                <input type="text" name="name" id="student_name" required>
+                <input type="text" name="department" id="student_department" required>
+                <input type="number" name="year" id="student_year" min="1" max="5" required>
+                <input type="number" step="0.01" name="attendance" id="student_attendance" required>
+                <input type="email" name="email" id="student_email" required>
+    
+                <div class="modal-actions">
+                    <button type="submit">Update</button>
+                    <button type="button" onclick="closeStudentModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openStudentEditModal(id, roll, name, dept, year, attendance, email) {
+            document.getElementById("studentEditModal").style.display = "flex";
+
+            document.getElementById("student_roll").value = roll;
+            document.getElementById("student_name").value = name;
+            document.getElementById("student_department").value = dept;
+            document.getElementById("student_year").value = year;
+            document.getElementById("student_attendance").value = attendance;
+            document.getElementById("student_email").value = email;
+
+            document.getElementById("studentEditForm").action =
+                "/admin/students/update/" + id;
+        }
+
+        function closeStudentModal() {
+            document.getElementById("studentEditModal").style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>

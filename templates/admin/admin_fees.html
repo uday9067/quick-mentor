@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Admin - Fees</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/admin_dashboard.png') }}">
+   
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="admin-body">
+    <div class="bg-gradient"></div>
+
+    <header class="admin-nav">
+        <div class="nav-left">
+            <span class="nav-logo-text">Admin Panel</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('admin.admin_dashboard') }}">Overview</a>
+            <a href="{{ url_for('admin.admin_students') }}">Students</a>
+            <a href="{{ url_for('admin.admin_timetable') }}">Timetable</a>
+            <a href="{{ url_for('admin.admin_fees') }}" class="active">Fees</a>
+            <a href="{{ url_for('admin.admin_logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-area">
+            {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <h1>Fee Records</h1>
+
+        <section class="panel">
+            <h2>Add Fee Record</h2>
+            <form method="post" action="{{ url_for('admin.admin_fees_add') }}" class="simple-form">
+                <input type="text" name="roll" placeholder="Roll (25xxx)" min="1" required>
+                <input type="number" name="semester" placeholder="Semester" min="1" max="6" required>
+                <input type="number" step="0.01" name="amount_due" placeholder="Amount Due" min="0" required>
+                <input type="number" step="0.01" name="amount_paid" placeholder="Amount Paid" min="0" required>
+                <input type="date" name="due_date" placeholder="Due Date" required>
+                <button type="submit">Add</button>
+            </form>
+        </section>
+        <div class="panel">
+            <h2>Upload Fees (CSV)</h2>
+        
+            <form action="{{ url_for('admin.admin_fees_upload') }}" method="POST" enctype="multipart/form-data"
+                class="simple-form">
+        
+                <input type="file" name="file" accept=".csv" required>
+                <button type="submit">Upload CSV</button>
+        
+            </form>
+        
+            <p style="font-size:12px; color:#a8b6ff; margin-top:6px;">
+                CSV columns:
+                <code>roll,semester,amount_due,amount_paid,due_date</code>
+            </p>
+        </div>
+
+        <section class="panel">
+            <h2>Fee List</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll</th>
+                            <th>Name</th>
+                            <th>Sem</th>
+                            <th>Due</th>
+                            <th>Paid</th>
+                            <th>Due Date</th>
+                            <th>Action</th>
+
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in fees %}
+                        <tr>
+                            <td>{{ f.roll }}</td>
+                            <td>{{ f.student_name }}</td>
+                            <td>{{ f.semester }}</td>
+                            <td>{{ f.amount_due }}</td>
+                            <td>{{ f.amount_paid }}</td>
+                            <td>{{ f.due_date }}</td>
+                        <td style="display:flex; gap:6px;">
+                            <!-- ✏️ Edit Fee -->
+                            <button class="btn-small" onclick="openFeeEditModal(
+                                    '{{ f.id }}',
+                                    '{{ f.roll }}',
+                                    '{{ f.student_name }}',
+                                    '{{ f.semester }}',
+                                    '{{ f.amount_due }}',
+                                    '{{ f.amount_paid }}',
+                                    '{{ f.due_date }}'
+                                )">
+                                Edit
+                            </button>
+
+                          
+                            <!-- ❌ Delete -->
+                            <form method="POST" action="{{ url_for('admin.admin_fees_delete', fid=f.id) }}"
+                                onsubmit="return confirm('Delete this fee record?');">
+                                <button class="danger">Delete</button>
+                            </form>
+                        </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">No fee records.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <!-- ================= EDIT FEE MODAL ================= -->
+    <div id="feeEditModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Fee Record</h2>
+    
+            <form method="POST" id="feeEditForm">
+                <input type="text" id="fee_roll" readonly>
+                <input type="text" id="fee_name" readonly>
+    
+                <input type="number" name="semester" id="fee_semester" min="1" required>
+                <input type="number" step="0.01" name="amount_due" id="fee_due" required>
+                <input type="number" step="0.01" name="amount_paid" id="fee_paid" required>
+                <input type="date" name="due_date" id="fee_date" required>
+    
+                <div class="modal-actions">
+                    <button type="submit">Update</button>
+                    <button type="button" onclick="closeFeeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    function openFeeEditModal(id, roll, name, semester, due, paid, date) {
+        document.getElementById("feeEditModal").style.display = "flex";
+
+        document.getElementById("fee_roll").value = roll;
+        document.getElementById("fee_name").value = name;
+        document.getElementById("fee_semester").value = semester;
+        document.getElementById("fee_due").value = due;
+        document.getElementById("fee_paid").value = paid;
+        document.getElementById("fee_date").value = date;
+
+        document.getElementById("feeEditForm").action =
+            "/admin/fees/update/" + id;
+    }
+
+    function closeFeeModal() {
+        document.getElementById("feeEditModal").style.display = "none";
+    }
+</script>
+
+
+</body>
+
+</html>

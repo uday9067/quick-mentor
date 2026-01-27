@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<h2>🖥️ System Status</h2>
+
+<table>
+    <tr>
+        <th>Service</th>
+        <th>Status</th>
+    </tr>
+
+    <tr>
+        <td>Database</td>
+        <td class="{{ 'ok' if status.database == 'UP' else 'fail' }}">
+            {{ status.database }}
+        </td>
+    </tr>
+
+    <tr>
+        <td>Email Service</td>
+        <td class="{{ 'ok' if status.email == 'CONFIGURED' else 'fail' }}">
+            {{ status.email }}
+        </td>
+    </tr>
+
+    <tr>
+        <td>AI Service</td>
+        <td class="{{ 'ok' if status.ai == 'AVAILABLE' else 'fail' }}">
+            {{ status.ai }}
+        </td>
+    </tr>
+</table>
+
+{% endblock %}

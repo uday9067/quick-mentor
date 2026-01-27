@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/admin_dashboard.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="admin-body">
+    <div class="bg-gradient"></div>
+
+    <!-- ✅ SINGLE ADMIN NAVBAR -->
+    <header class="admin-nav">
+        <div class="nav-left">
+            <span class="nav-logo-text">ADMIN PANEL</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('admin.admin_dashboard') }}" title="Overview">Overview</a>
+            <a href="{{ url_for('admin.admin_students') }}" title="Students">Students</a>
+            <a href="{{ url_for('admin.admin_timetable') }}" title="Timetable">Timetable</a>
+            <a href="{{ url_for('admin.admin_fees') }}" title="Fees">Fees</a>
+            <a href="{{ url_for('admin.admin_logout') }}" title="Logout">Logout</a>
+        </nav>
+    </header>
+
+    <!-- ✅ PAGE CONTENT GOES HERE -->
+    <main class="admin-main">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-area">
+        {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    </main>
+
+</body>
+
+</html>

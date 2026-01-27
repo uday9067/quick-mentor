@@ -1,0 +1,178 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<!-- Page Heading -->
+<h1>Welcome, Admin 👋</h1>
+<p class="subtitle">Here is a quick overview of your college data.</p>
+
+<!-- Stats Overview -->
+<section class="stats-grid">
+    <div class="stat-card">
+        <p class="label">Students</p>
+        <p class="value">{{ stats.students }}</p>
+    </div>
+
+    <div class="stat-card">
+        <p class="label">Fee Records</p>
+        <p class="value">{{ stats.fees }}</p>
+    </div>
+
+    <div class="stat-card">
+        <p class="label">Timetable Slots</p>
+        <p class="value">{{ stats.timetable }}</p>
+    </div>
+</section>
+
+<!-- Low Attendance Panel -->
+<section class="panel">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>⚠️ Students with Low Attendance</h2>
+
+        <a href="{{ url_for('admin.download_low_attendance_pdf') }}" title="Download PDF" style="
+             text-decoration:none;
+             padding:6px 12px;
+             border-radius:8px;
+             font-size:12px;
+             font-weight:500;
+           " class="simple-form">
+           <button type="button">Download PDF</button>
+        </a>
+
+    </div>
+
+    {% if low_attendance_students %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Attendance (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in low_attendance_students %}
+                <tr>
+                    <td>{{ s.roll }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.department }}</td>
+                    <td>{{ s.year }}</td>
+                    <td style="color:#ff5c5c; font-weight:600;">
+                        {{ s.attendance }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>✅ No students with low attendance.</p>
+    {% endif %}
+</section>
+
+
+<!-- Pending Fees Panel -->
+<section class="panel">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>💰 Students with Pending Fees</h2>
+
+        <a href="{{ url_for('admin.download_pending_fees_pdf') }}" title="Download PDF" style="
+             text-decoration:none;
+             padding:6px 12px;
+             border-radius:8px;
+             font-size:12px;
+             font-weight:500;
+           " class="simple-form">
+           <button type="button">Download PDF</button>
+            
+            
+        </a>
+    </div>
+
+    {% if pending_fee_students %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll</th>
+                    <th>Name</th>
+                    <th>Semester</th>
+                    <th>Pending Amount</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in pending_fee_students %}
+                <tr>
+                    <td>{{ f.roll }}</td>
+                    <td>{{ f.name }}</td>
+                    <td>{{ f.semester }}</td>
+                    <td class="warning">
+                        ₹{{ f.pending_amount }}
+                    </td>
+                    <td>{{ f.due_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>✅ No pending fee records.</p>
+    {% endif %}
+</section>
+
+<!-- Chat Logs Shortcut -->
+<section class="panel">
+    <h2>💬 Chat Logs</h2>
+    <p>Monitor chatbot usage and student interactions.</p>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <a href="{{ url_for('admin.chat_logs') }}" style="text-decoration:none;
+                 padding:6px 12px;
+                 border-radius:20px;" class="simple-form">
+            <button type="submit" title="Chat Logs">View Chat Logs →</button>
+    
+        </a>
+    </div>
+
+</section>
+
+<section class="panel">
+    <h2>🖥️ System Status</h2>
+
+    <table>
+        <tr>
+            <th>Service</th>
+            <th>Status</th>
+        </tr>
+
+        <tr>
+            <td>Database</td>
+            <td class="{{ 'ok' if system_status['database'] == 'UP' else 'fail' }}">
+                {{ system_status['database'] }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>Email Service</td>
+            <td class="{{ 'ok' if system_status['email'] == 'CONFIGURED' else 'fail' }}">
+                {{ system_status['email'] }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>AI Service</td>
+            <td class="{{ 'ok' if system_status['ai'] == 'AVAILABLE' else 'fail' }}">
+                {{ system_status['ai'] }}
+            </td>
+        </tr>
+    </table>
+</section>
+
+
+
+{% endblock %}
