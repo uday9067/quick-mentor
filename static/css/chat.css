@@ -402,6 +402,53 @@ body::before {
     }
 }
 
+/* Attach button inside input bar */
+.attach-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+
+    background: rgba(4, 8, 28, 0.96);
+    border: 1px solid rgba(140, 185, 255, 0.55);
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+/* Icon image */
+.attach-icon {
+    width: 18px;
+    height: 18px;
+
+    background-image: url("/static/images/attach.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    opacity: 0.8;
+}
+
+/* Hover effect */
+.attach-btn:hover {
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.45);
+    transform: scale(1.05);
+}
+
+.attach-btn:hover .attach-icon {
+    opacity: 1;
+}
+
+
+
+.message.bot.uploading {
+    opacity: 0.7%;
+    font-style: italic;
+}
+
 /* ======================================================
    EXTRA MOBILE RESPONSIVENESS (SAFE OVERRIDES ONLY)
    ====================================================== */
@@ -492,5 +539,19 @@ body::before {
 @media (max-height: 520px) {
     html, body {
         overflow: hidden;
+    }
+}
+
+
+
+@media (max-width: 480px) {
+    .attach-btn {
+        height: 42px;
+        padding: 0 12px;
+    }
+
+    .attach-icon {
+        width: 16px;
+        height: 16px;
     }
 }

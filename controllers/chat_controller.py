@@ -1,4 +1,10 @@
 from flask import Blueprint, request, jsonify, session
+from werkzeug.utils import secure_filename
+import os
+import difflib
+import random
+import re
+
 from models.student_model import StudentModel
 from models.fee_model import FeeModel
 from models.timetable_model import TimetableModel
@@ -9,16 +15,18 @@ from utils.ai_client import client, MODEL
 from utils.email_service import send_alert_email
 from utils.college_info import COLLEGE_INFO
 from utils.local_llm import ask_local_llm
-from utils.chat_intents import INTENTS, FUZZY_THRESHOLD
+from utils.chat_intents import INTENTS
 
-import difflib
-import random
-import re
+from utils.pdf_reader import extract_pdf_chunks
+
 
 chat = Blueprint("chat", __name__)
 
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 # -------------------------------
-# FUZZY MATCH HELPER
+# FUZZY MATCH
 # -------------------------------
 def fuzzy_match(word, keywords, threshold=0.75):
     for key in keywords:
@@ -27,7 +35,7 @@ def fuzzy_match(word, keywords, threshold=0.75):
     return False
 
 # -------------------------------
-# MULTI-INTENT DETECTOR
+# INTENT DETECTION
 # -------------------------------
 def detect_intents(msg):
     msg = msg.lower()
@@ -38,7 +46,6 @@ def detect_intents(msg):
             if k in msg:
                 found.append(intent)
                 break
-
         for p in meta.get("phrases", []):
             if p in msg:
                 found.append(intent)
@@ -63,186 +70,189 @@ JOKES = [
 @chat.route("/get_response", methods=["POST"])
 def get_response():
 
-    data = request.get_json()
-    user_msg = data.get("message", "").strip()
 
-    if not user_msg:
-        return jsonify({"reply": "Please enter a message."})
+    # Accept JSON OR FormData
+    user_msg = request.form.get("message") or \
+               (request.get_json(silent=True) or {}).get("message", "")
+    user_msg = user_msg.strip()
+
+    file = request.files.get("file")
 
     roll = session.get("user_roll")
     if not roll:
         return jsonify({"reply": "🔒 Please login to access your academic information."})
 
-    msg = user_msg.lower()
+
+    # ---------------- FILE UPLOAD ----------------
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(save_path)
+
+        chunks = []
+        if filename.lower().endswith(".pdf"):
+            chunks = extract_pdf_chunks(save_path)
+
+        session["last_uploaded_file"] = {
+            "filename": filename,
+            "chunks": chunks
+        }
+
+        session["file_context_pending"] = True
+
+        return jsonify({
+            "reply": (
+                f"📎 File **{filename}** uploaded successfully.\n\n"
+                f"I’ve read this document ({len(chunks)} sections). "
+                "You can now ask questions about it."
+            )
+        })
+
+    
+  # ---------------- PDF QUESTION ANSWERING ----------------
+    file_ctx = session.get("last_uploaded_file")
+
+    if file_ctx and file_ctx.get("chunks") and user_msg:
+        answers = []
+
+        for chunk in file_ctx["chunks"][:5]:  # limit chunks for speed
+            prompt = f"""
+    Answer the question using ONLY the content below.
+
+    CONTENT:
+    {chunk}
+
+    QUESTION:
+    {user_msg}
+    """
+            try:
+                resp = client.models.generate_content(
+                    model=MODEL,
+                    contents=prompt
+                ).text.strip()
+            except Exception:
+                resp = ask_local_llm(prompt)
+
+            answers.append(resp)
+
+        final_prompt = "Summarize the following answers into one clear response:\n\n" + "\n\n".join(answers)
+
+        try:
+            final_reply = client.models.generate_content(
+                model=MODEL,
+                contents=final_prompt
+            ).text.strip()
+        except Exception:
+            final_reply = ask_local_llm(final_prompt)
+
+        return jsonify({"reply": final_reply})
+
+
+
+    if not user_msg:
+        return jsonify({"reply": "Please enter a message."})
+
+    # Security block
+    if re.search(r"\br\d+\b", user_msg):
+        return jsonify({"reply": "🔒 I can only show your own data."})
+
+    intents = detect_intents(user_msg)
     responses = []
     handled_intents = []
 
-    # -------------------------------
-    # SECURITY BLOCK (IMMEDIATE EXIT)
-    # -------------------------------
-    if re.search(r"\br\d+\b", msg):
-        return jsonify({
-            "reply": "🔒 For security reasons, I can only show your own data."
-        })
-
-    intents = detect_intents(user_msg)
-
-    # -------------------------------
-    # ATTENDANCE
-    # -------------------------------
+    # ---------------- ATTENDANCE ----------------
     if "ATTENDANCE" in intents:
         student = StudentModel.get_by_roll(roll)
         responses.append(f"📊 Your attendance is {student.attendance}%.")
         handled_intents.append("ATTENDANCE")
         ChatHistoryModel.save(roll, "ATTENDANCE", "DB")
 
-    # -------------------------------
-    # FEES
-    # -------------------------------
+    # ---------------- FEES ----------------
     if "FEES" in intents:
         fee = FeeModel.get_by_roll(roll)
         if not fee:
-            responses.append("💰 No fee records found for you.")
+            responses.append("💰 No fee records found.")
         else:
             pending = fee.amount_due - fee.amount_paid
             responses.append(
-                "💰 **Your Fee Status**\n"
-                f"- Semester: {fee.semester}\n"
-                f"- Total Due: ₹{fee.amount_due}\n"
-                f"- Paid: ₹{fee.amount_paid}\n"
-                f"- Pending: ₹{pending}\n"
-                f"- Due Date: {fee.due_date}"
+                f"💰 **Fee Status**\nSemester: {fee.semester}\nDue: ₹{fee.amount_due}\nPaid: ₹{fee.amount_paid}\nPending: ₹{pending}"
             )
         handled_intents.append("FEES")
         ChatHistoryModel.save(roll, "FEES", "DB")
 
-    # -------------------------------
-    # TODAY'S CLASSES
-    # -------------------------------
+    # ---------------- CLASSES ----------------
     if "TODAY_CLASSES" in intents:
         classes = TimetableModel.get_today_classes()
-        if not classes:
-            responses.append("📅 You have no classes scheduled today.")
-        else:
-            txt = "📅 **Today's Classes**\n"
-            for c in classes:
-                txt += f"- {c.start_time}–{c.end_time}: {c.subject}\n"
-            responses.append(txt)
+        txt = "📅 **Today's Classes**\n" + "\n".join(
+            f"- {c.start_time}-{c.end_time}: {c.subject}" for c in classes
+        ) if classes else "📅 No classes today."
+        responses.append(txt)
         handled_intents.append("TODAY_CLASSES")
 
-    # -------------------------------
-    # NEXT CLASS
-    # -------------------------------
     if "NEXT_CLASS" in intents:
         c = TimetableModel.get_next_class()
-        if not c:
-            responses.append("🎉 You have no more classes today.")
-        else:
-            responses.append(
-                "⏭️ **Your Next Class**\n"
-                f"- {c.subject}\n"
-                f"- Time: {c.start_time}–{c.end_time}\n"
-                f"- Instructor: {c.instructor}\n"
-                f"- Location: {c.location}"
-            )
+        responses.append(
+            f"⏭️ Next: {c.subject} at {c.start_time}" if c else "🎉 No more classes today."
+        )
         handled_intents.append("NEXT_CLASS")
 
-    # -------------------------------
-    # TIMETABLE
-    # -------------------------------
+    # ---------------- TIMETABLE ----------------
     if "TIMETABLE" in intents:
         timetable = TimetableModel.get_all()
-        if not timetable:
-            responses.append("🗓 No timetable entries found.")
-        else:
-            txt = "🗓 **Your Timetable**\n"
-            for t in timetable:
-                txt += f"- {t.day}: {t.subject} ({t.start_time}-{t.end_time})\n"
-            responses.append(txt)
+        responses.append("🗓 **Timetable**\n" + "\n".join(f"- {t.day}: {t.subject}" for t in timetable))
         handled_intents.append("TIMETABLE")
         ChatHistoryModel.save(roll, "TIMETABLE", "DB")
 
-    # -------------------------------
-    # COLLEGE INFO
-    # -------------------------------
+    # ---------------- COLLEGE INFO ----------------
     if "COLLEGE_INFO" in intents:
         for k, v in COLLEGE_INFO.items():
-            if k in msg:
+            if k in msg_lower:
                 responses.append(f"🏫 {v}")
                 break
         handled_intents.append("COLLEGE_INFO")
-        ChatHistoryModel.save(roll, "COLLEGE_INFO", "FAQ")
 
-    # -------------------------------
-    # ELIGIBILITY
-    # -------------------------------
+    # ---------------- ELIGIBILITY ----------------
     if "ELIGIBILITY" in intents:
         _, message = StudentModel.check_eligibility(roll)
         responses.append(f"🎓 {message}")
         handled_intents.append("ELIGIBILITY")
-        ChatHistoryModel.save(roll, "ELIGIBILITY", "DB")
 
-    # -------------------------------
-    # ALERTS
-    # -------------------------------
+    # ---------------- ALERTS ----------------
     if "ALERTS" in intents:
         alerts, email = StudentModel.get_alerts(roll)
-        if not alerts:
-            responses.append("✅ No alerts. Everything looks good!")
-        else:
-            txt = "🚨 **Important Alerts**\n"
-            for a in alerts:
-                txt += f"- {a}\n"
-            responses.append(txt)
-
+        if alerts:
+            responses.append("🚨 Alerts:\n" + "\n".join(alerts))
             if not session.get("alert_email_sent"):
                 send_alert_email(email, alerts)
                 session["alert_email_sent"] = True
-
+        else:
+            responses.append("✅ No alerts.")
         handled_intents.append("ALERTS")
-        ChatHistoryModel.save(roll, "ALERTS", "DB")
 
-    # -------------------------------
-    # JOKES
-    # -------------------------------
+    # ---------------- JOKE ----------------
     if "JOKE" in intents:
         last = session.get("last_joke_index", -1)
-        available = [i for i in range(len(JOKES)) if i != last]
-        idx = random.choice(available)
+        choices = [i for i in range(len(JOKES)) if i != last]
+        idx = random.choice(choices)
         session["last_joke_index"] = idx
         responses.append(JOKES[idx])
         handled_intents.append("JOKE")
-        ChatHistoryModel.save(roll, "JOKE", "FUN")
 
-    # -------------------------------
-    # AI FALLBACK
-    # -------------------------------
+    # ---------------- AI FALLBACK ----------------
     if not responses:
         try:
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=user_msg
-            )
-            reply = response.text.strip()
-        except Exception:
-            reply = ask_local_llm(user_msg)
+            reply = client.models.generate_content(model=MODEL, contents=user_msg).text.strip()
             source = "AI"
+        except:
+            reply = ask_local_llm(user_msg)
+            source = "LOCAL_AI"
 
+        ChatHistoryModel.save(roll, "GENERAL_AI", source)
         handled_intents.append("GENERAL_AI")
-
-        # ✅ LOG AI CHAT
-        ChatHistoryModel.save(
-            roll,
-            "GENERAL_AI",
-            source
-        )
     else:
         reply = "\n\n".join(responses)
 
-
-    # -------------------------------
-    # SAVE CONTEXT
-    # -------------------------------
+    # ---------------- SAVE CONTEXT ----------------
     UserContextModel.save(
         user_roll=roll,
         last_intent=handled_intents[-1],
