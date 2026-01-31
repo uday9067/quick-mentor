@@ -5,18 +5,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Student Assistant – Chat</title>
+
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/chat.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-    
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
 </head>
 
 <body>
-   
+
     <div class="bg-gradient"></div>
 
-    <!-- Navbar (same style as home) -->
+    <!-- NAVBAR -->
     <header class="nav">
         <div class="nav-left">
             <div class="nav-logo-circle"></div>
@@ -34,32 +34,43 @@
         </nav>
     </header>
 
-    <!-- Chat container -->
+    <!-- CHAT -->
     <main class="chat-shell">
         <section class="chat-card">
+
             <header class="chat-header">
                 <div>
                     <p class="chat-title">Student Assistant</p>
                     <p class="chat-subtitle">
-                        Have a question? Just ask ✨
+                        Have a question? Just ask ✨<br>
                         I’m here to help with academics and more.
-
                     </p>
-
                 </div>
+
                 <div class="chat-status">
                     <span class="dot"></span>
                     <span>Online</span>
                 </div>
             </header>
 
+            <!-- CHAT BOX -->
             <div id="chat-box" class="chat-box" aria-live="polite"></div>
 
+            <!-- INPUT ROW -->
             <form id="chat-form" class="chat-input-row" autocomplete="off">
-                <input id="user-input" type="text"
-                    placeholder="Ask anything... e.g. 'Explain OS','Timetable','Fees'" required autofocus/>
+                <input id="user-input" type="text" placeholder="Ask anything... e.g. Attendance, Fees, Timetable" />
+
+                <!-- 📎 ATTACH FILE -->
+            <label class="attach-btn" title="Attach file">
+                <span class="attach-icon"></span>
+            </label>
+            <input type="file" id="file-input" hidden />
+
+
+
                 <button type="submit">Send</button>
             </form>
+
         </section>
     </main>
 
@@ -67,23 +78,35 @@
         const chatBox = document.getElementById("chat-box");
         const chatForm = document.getElementById("chat-form");
         const userInput = document.getElementById("user-input");
+        const fileInput = document.getElementById("file-input");
 
+        document.querySelector(".attach-btn").addEventListener("click", () => {
+                fileInput.click();
+            });
+
+        // ✅ Show file immediately after selecting (Open button)
+            fileInput.addEventListener("change", () => {
+                if (fileInput.files.length > 0) {
+                    appendMessage(`📎 ${fileInput.files[0].name}`, "user");
+                }
+            });
+    
         function scrollToBottom() {
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function appendMessage(text, cls = "bot") {
-            const wrapper = document.createElement("div");
-            wrapper.className = "message " + cls;
-            wrapper.textContent = text;
-            chatBox.appendChild(wrapper);
+            const div = document.createElement("div");
+            div.className = "message " + cls;
+            div.textContent = text;
+            chatBox.appendChild(div);
             scrollToBottom();
         }
 
         function showTyping() {
             const typing = document.createElement("div");
             typing.className = "message bot typing-bubble";
-            typing.innerHTML = '<span></span><span></span><span></span>';
+            typing.innerHTML = "<span></span><span></span><span></span>";
             chatBox.appendChild(typing);
             scrollToBottom();
             return typing;
@@ -91,43 +114,95 @@
 
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const msg = userInput.value.trim();
-            if (!msg) return;
 
+            const msg = userInput.value.trim();
+            const file = fileInput.files[0];
+
+
+           
+
+            if (!msg && !file) return;
+
+            /* -----------------------------
+               FILE UPLOAD TAKES PRIORITY
+            ----------------------------- */
+            if (file) {
+
+                // ✅ Uploading indicator (VISIBLE)
+                const status = document.createElement("div");
+                status.className = "message bot uploading";
+                status.textContent = "⏳ Uploading file…";
+                chatBox.appendChild(status);
+                scrollToBottom();
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                try {
+                    const res = await fetch("/get_response", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await res.json();
+
+                    status.remove();
+                    appendMessage(data.reply || "📎 File uploaded successfully.", "bot");
+
+                } catch (err) {
+                    status.remove();
+                    appendMessage("❌ File upload failed.", "bot");
+                }
+
+                fileInput.value = "";
+                userInput.value = "";
+                return;
+            }
+
+
+
+
+
+            /* -----------------------------
+               NORMAL TEXT MESSAGE
+            ----------------------------- */
             appendMessage(msg, "user");
             userInput.value = "";
 
             const typing = showTyping();
 
+            const formData = new FormData();
+            formData.append("message", msg);
+
             try {
                 const res = await fetch("/get_response", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" ,
-                            "X-Login-Token": sessionStorage.getItem("login_token")
-                    },
-                    
-                    body: JSON.stringify({ message: msg })
+                    body: formData
                 });
 
                 const data = await res.json();
                 typing.remove();
-                appendMessage(data.reply || "No response from server.", "bot");
+                appendMessage(data.reply || "No response.", "bot");
+
             } catch (err) {
                 typing.remove();
-                appendMessage("Error contacting server.", "bot");
-                console.error(err);
+                appendMessage("❌ Error contacting server.", "bot");
             }
+
+            fileInput.value = "";
         });
 
-        // Initial welcome
-        appendMessage("👋 Hey there! I’m your Student Assistant 🤖.\n\n" +
-                "• Ask me anything about your academics 📚\n" +
-                "• Get instant help with attendance, fees & timetable\n" +
-                "• Or just relax with a joke 😄", "bot");
-
+        // Initial welcome message
+        appendMessage(
+            "👋 Hey there! I’m your Student Assistant 🤖.\n\n" +
+            "• Ask me about attendance, fees & timetable 📚\n" +
+            "• Upload a document 📎\n" +
+            "• Or just say hello 😄",
+            "bot"
+        );
     </script>
-    
 
 </body>
 
 </html>
+
