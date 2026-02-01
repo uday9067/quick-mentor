@@ -79,7 +79,9 @@
         const chatForm = document.getElementById("chat-form");
         const userInput = document.getElementById("user-input");
         const fileInput = document.getElementById("file-input");
-
+        const sendBtn = chatForm.querySelector("button");
+        const attachBtn = document.querySelector(".attach-btn");
+        let isWaitingForReply = false;
         document.querySelector(".attach-btn").addEventListener("click", () => {
                 fileInput.click();
             });
@@ -112,6 +114,23 @@
             return typing;
         }
 
+        function lockInput() {
+                isWaitingForReply = true;
+                sendBtn.disabled = true;
+                userInput.disabled = true;
+                attachBtn.style.pointerEvents = "none";
+                sendBtn.style.opacity = "0.6";
+            }
+
+            function unlockInput() {
+                isWaitingForReply = false;
+                sendBtn.disabled = false;
+                userInput.disabled = false;
+                attachBtn.style.pointerEvents = "auto";
+                sendBtn.style.opacity = "1";
+                userInput.focus();
+            }
+
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
@@ -121,13 +140,14 @@
 
            
 
-            if (!msg && !file) return;
+           if (isWaitingForReply || (!msg && !file)) return;
+
 
             /* -----------------------------
                FILE UPLOAD TAKES PRIORITY
             ----------------------------- */
             if (file) {
-
+                lockInput();
                 // ✅ Uploading indicator (VISIBLE)
                 const status = document.createElement("div");
                 status.className = "message bot uploading";
@@ -148,10 +168,12 @@
 
                     status.remove();
                     appendMessage(data.reply || "📎 File uploaded successfully.", "bot");
+                    unlockInput();
 
                 } catch (err) {
                     status.remove();
                     appendMessage("❌ File upload failed.", "bot");
+                    unlockInput();
                 }
 
                 fileInput.value = "";
@@ -166,6 +188,7 @@
             /* -----------------------------
                NORMAL TEXT MESSAGE
             ----------------------------- */
+            lockInput();
             appendMessage(msg, "user");
             userInput.value = "";
 
@@ -183,10 +206,12 @@
                 const data = await res.json();
                 typing.remove();
                 appendMessage(data.reply || "No response.", "bot");
+                unlockInput();
 
             } catch (err) {
                 typing.remove();
                 appendMessage("❌ Error contacting server.", "bot");
+                unlockInput();
             }
 
             fileInput.value = "";
