@@ -206,7 +206,7 @@ def get_response():
     # ---------------- COLLEGE INFO ----------------
     if "COLLEGE_INFO" in intents:
         for k, v in COLLEGE_INFO.items():
-            if k in msg_lower:
+            if k in user_msg.lower():
                 responses.append(f"🏫 {v}")
                 break
         handled_intents.append("COLLEGE_INFO")
