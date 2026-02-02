@@ -1,0 +1,13 @@
+git checkout development
+git status
+git add .
+git commit -m "Add features and fix bugs"
+git push origin development
+gh pr create --base main --head development --title "Merge development into main" --body "Features added, bugs fixed"
+gh pr merge --squash
+
+git checkout main
+git pull origin main
+
+git checkout development
+git pull origin main
