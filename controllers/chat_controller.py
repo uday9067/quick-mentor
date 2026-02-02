@@ -20,6 +20,7 @@ from utils.chat_intents import INTENTS
 from utils.pdf_reader import extract_pdf_chunks
 
 
+
 chat = Blueprint("chat", __name__)
 
 UPLOAD_FOLDER = "uploads"
@@ -81,6 +82,37 @@ def get_response():
     roll = session.get("user_roll")
     if not roll:
         return jsonify({"reply": "🔒 Please login to access your academic information."})
+
+
+    # --------------------------------------------
+    # COMMAND MODE (/activity)
+    # --------------------------------------------
+    if user_msg.lower() == "/activity":
+        roll = session.get("user_roll")
+
+        if not roll:
+            return jsonify({"reply": "⚠️ Please login to view activity."})
+
+        rows = ChatHistoryModel.get_user_activity(roll, limit=5)
+
+        if not rows:
+            return jsonify({"reply": "ℹ️ No recent activity found."})
+
+        reply = "🕘 **Your recent activity:**\n\n"
+
+        for r in rows:
+            intent = r.intent.replace("_", " ").title()
+            reply += f"• {intent} ({r.source})\n"
+
+        ChatHistoryModel.save(
+            user_roll=roll,
+            intent="VIEW_ACTIVITY",
+            source="SYSTEM"
+        )
+
+        return jsonify({"reply": reply})
+
+
 
 
     # ---------------- FILE UPLOAD ----------------
