@@ -14,7 +14,8 @@ class TimetableModel:
         with engine.connect() as conn:
             q = text("""
                 SELECT * FROM timetable
-                ORDER BY class_date, start_time
+                ORDER BY FIELD(day, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),
+         start_time
             """)
             return conn.execute(q).fetchall()
 

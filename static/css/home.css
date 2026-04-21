@@ -36,6 +36,13 @@ header {
     z-index: -2;
 }
 
+#particles {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
 @keyframes moveGradient {
     0% {
         background-position: 0% 0%, 100% 0%, 50% 100%;

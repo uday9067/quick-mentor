@@ -9,8 +9,13 @@ INTENTS = {
     },
 
     "FEES": {
-        "keywords": ["fee", "fees", "payment", "amount"],
+        "keywords": ["fee", "fees", "payment", "amount", "scholarship", "scholarships"],
         "source": "DB"
+    },
+
+    "ADMISSION": {
+        "keywords": ["admission", "admissions", "enrollment", "enroll", "join"],
+        "source": "FAQ"
     },
 
     "TODAY_CLASSES": {
@@ -21,6 +26,22 @@ INTENTS = {
             "class today"
         ],
         "source": "DB"
+    },
+
+    "CLASS_TEACHER": {
+        "phrases": [
+            "who is my class teacher",
+            "class teacher",
+            "my class teacher",
+            "who is our class teacher"
+        ],
+        "keywords": ["class teacher"],
+        "source": "DB"
+    },
+
+    "FACULTY_DETAILS": {
+        "keywords": ["faculty details", "teacher detail", "professor", "prof", "details of faculty", "detail of any faculty"],
+        "source": "FAQ"
     },
 
     "NEXT_CLASS": {
