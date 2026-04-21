@@ -1,6 +1,31 @@
 /* Reuse styles from home page for consistency */
 
 /* ---------- BASE ---------- */
+:root {
+    --color-primary: #7c3aed;
+    --color-primary-light: #a78bfa;
+    --color-secondary: #06b6d4;
+    --color-bg: #0f0f1a;
+    --color-surface: rgba(26, 26, 46, 0.95);
+    --color-border: rgba(124, 58, 237, 0.25);
+    --color-text: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-primary: #7c3aed;
+    --color-primary-dark: #6d28d9;
+    --color-secondary: #06b6d4;
+    --color-accent: #f472b6;
+    --color-bg: #0f0f1a;
+    --color-bg-soft: #1a1a2e;
+    --color-surface: rgba(26, 26, 46, 0.95);
+    --color-surface-light: rgba(36, 36, 60, 0.9);
+    --color-border: rgba(124, 58, 237, 0.25);
+    --color-text: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-success: #10b981;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -13,11 +38,9 @@ html, body {
     box-sizing: border-box;
 }
 
-
-
 body {
     font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #f5f6ff;
+    color: var(--color-text);
     overflow-x: hidden;
     position: relative;
 }
@@ -26,11 +49,12 @@ body {
 .bg-gradient {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 0% 0%, #1a73ff 0, transparent 55%),
-                radial-gradient(circle at 100% 0%, #ff2ea6 0, transparent 55%),
-                radial-gradient(circle at 50% 100%, #00ffc3 0, transparent 55%),
-                #050818;
-    animation: moveGradient 18s ease-in-out infinite alternate;
+    background: 
+        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124, 58, 237, 0.15) 0, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(6, 182, 212, 0.1) 0, transparent 50%),
+        radial-gradient(ellipse 50% 30% at 50% 100%, rgba(244, 114, 182, 0.08) 0, transparent 50%),
+        var(--color-bg);
+    animation: moveGradient 20s ease-in-out infinite alternate;
     z-index: -2;
 }
 
@@ -54,8 +78,7 @@ body::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 20% 0, rgba(0, 0, 0, 0.7), transparent 50%),
-                radial-gradient(circle at 80% 100%, rgba(0, 0, 0, 0.7), transparent 55%);
+    background: linear-gradient(180deg, rgba(15, 15, 26, 0.3) 0%, transparent 30%, transparent 70%, rgba(15, 15, 26, 0.5) 100%);
     z-index: -1;
     pointer-events: none;
 
@@ -71,13 +94,9 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    backdrop-filter: blur(14px);
-    background: linear-gradient(
-        to bottom,
-        rgba(6, 10, 35, 0.9),
-        rgba(6, 10, 35, 0.2)
-    );
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    background: rgba(15, 15, 26, 0.85);
+    border-bottom: 1px solid var(--color-border);
     z-index: 20;
 }
 
@@ -88,11 +107,11 @@ body::before {
 }
 
 .nav-logo-circle {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 2px solid rgba(0, 255, 204, 0.7);
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.5);
 }
 
 .nav-logo-text {
@@ -175,13 +194,10 @@ body::before {
     max-width: 920px;
     min-height: unset;
     max-height: 100%;
-    background: radial-gradient(circle at 0 0, rgba(0, 255, 204, 0.09), transparent 60%),
-                rgba(7, 12, 40, 0.96);
-    border-radius: 26px;
-    border: 1px solid rgba(136, 190, 255, 0.45);
-    box-shadow:
-        0 0 25px rgba(0, 0, 0, 0.7),
-        0 0 40px rgba(0, 255, 192, 0.2);
+    background: var(--color-surface);
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(16px);
     padding: 18px 18px 16px;
     display: flex;
@@ -235,6 +251,27 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    position: relative;
+}
+
+/* Scroll fade indicator */
+.chat-box::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(8, 15, 60, 0.8), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    z-index: 1;
+    margin-bottom: -30px;
+}
+
+.chat-box.scrolled::before {
+    opacity: 1;
 }
 
 /* custom scrollbar */
@@ -259,15 +296,15 @@ body::before {
 
 .message.user {
     margin-left: auto;
-    background: linear-gradient(135deg, #00ffc3, #4fa3ff);
-    color: #021023;
-    box-shadow: 0 0 16px rgba(0, 255, 204, 0.3);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
 }
 
 .message.bot {
     margin-right: auto;
-    background: rgba(8, 15, 60, 0.9);
-    border: 1px solid rgba(133, 178, 255, 0.55);
+    background: var(--color-surface-light);
+    border: 1px solid var(--color-border);
 }
 
 /* typing indicator */
@@ -329,6 +366,60 @@ body::before {
 
 .chat-input-row button:hover {
     transform: translateY(-1px) scale(1.02);
+}
+
+/* ---------- RICH TEXT FORMATTING ---------- */
+.message.bot strong {
+    color: #00ffc3;
+    font-weight: 600;
+}
+
+.message.bot code {
+    background: rgba(0, 255, 204, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.message.bot .rich-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.message.bot .rich-table th,
+.message.bot .rich-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid rgba(133, 178, 255, 0.4);
+}
+
+.message.bot .rich-table th {
+    background: rgba(0, 255, 204, 0.15);
+    color: #00ffc3;
+    font-weight: 600;
+}
+
+.message.bot .rich-table tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.message.bot ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.message.bot li {
+    margin: 4px 0;
+}
+
+/* Focus states for accessibility */
+.chat-input-row input:focus,
+.chat-input-row button:focus {
+    outline: 2px solid #00ffc3;
+    outline-offset: 2px;
 }
 
 /* ---------- ANIMATIONS ---------- */
@@ -561,4 +652,64 @@ body::before {
         width: 16px;
         height: 16px;
     }
+}
+
+/* ---------- LIGHT MODE ---------- */
+body.light-mode {
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.1);
+    --color-text: #1e293b;
+    --color-text-muted: #64748b;
+}
+
+body.light-mode .bg-gradient {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e0f2fe 50%, #f0f9ff 100%);
+}
+
+body.light-mode .nav {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .nav-logo-circle {
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+}
+
+body.light-mode .nav-links a {
+    color: #1e293b;
+}
+
+body.light-mode .chat-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .chat-title {
+    color: #1e293b;
+}
+
+body.light-mode .chat-subtitle {
+    color: #64748b;
+}
+
+body.light-mode .message.bot {
+    background: #f0f2ff;
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a2e;
+}
+
+body.light-mode .chat-input-row input {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #1a1a2e;
+}
+
+body.light-mode .chat-input-row input::placeholder {
+    color: #8888aa;
+}
+
+body.light-mode .typing-bubble span {
+    background: #4a4a6a;
 }
