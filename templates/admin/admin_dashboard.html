@@ -30,10 +30,12 @@
     <div class="panel-header">
         <h2>⚠️ Students with Low Attendance</h2>
 
-        <a href="{{ url_for('admin.download_low_attendance_pdf') }}" title="Download PDF" class="simple-form">
-            <button type="button">Download PDF</button>
-        </a>
-
+        <div class="header-actions">
+            <button type="button" onclick="showChart('attendance')" class="chart-btn">Show Chart</button>
+            <a href="{{ url_for('admin.download_low_attendance_pdf') }}" title="Download PDF" class="simple-form">
+                <button type="button">Download PDF</button>
+            </a>
+        </div>
     </div>
 
     {% if low_attendance_students %}
@@ -75,9 +77,12 @@
     <div class="panel-header">
         <h2>💰 Students with Pending Fees</h2>
 
-        <a href="{{ url_for('admin.download_pending_fees_pdf') }}" title="Download PDF" class="simple-form">
-            <button type="button">Download PDF</button>
-        </a>
+        <div class="header-actions">
+            <button type="button" onclick="showChart('fees')" class="chart-btn">Show Chart</button>
+            <a href="{{ url_for('admin.download_pending_fees_pdf') }}" title="Download PDF" class="simple-form">
+                <button type="button">Download PDF</button>
+            </a>
+        </div>
     </div>
 
     {% if pending_fee_students %}
@@ -117,9 +122,12 @@
     <h2>💬 Chat Logs</h2>
     <p>Monitor chatbot usage and student interactions.</p>
     <div class="panel-header">
-        <a href="{{ url_for('admin.chat_logs') }}" class="simple-form">
-            <button type="submit" title="Chat Logs">View Chat Logs →</button>
-        </a>
+        <div class="header-actions">
+            <button type="button" onclick="showChart('chats')" class="chart-btn">Show Chart</button>
+            <a href="{{ url_for('admin.chat_logs') }}" class="simple-form">
+                <button type="submit" title="Chat Logs">View Chat Logs →</button>
+            </a>
+        </div>
     </div>
 
 </section>
@@ -158,4 +166,206 @@
 
 
 
+<!-- Chart Modal -->
+<div id="chartModal" class="modal chart-modal-overlay">
+    <div class="chart-modal-content">
+        <div class="modal-header">
+            <h2 id="chartTitle">Data Chart</h2>
+            <span class="close" onclick="closeChartModal()">&times;</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="dataChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let myChart = null;
+
+    async function showChart(type) {
+        const modal = document.getElementById('chartModal');
+        const title = document.getElementById('chartTitle');
+        const canvas = document.getElementById('dataChart');
+        
+        modal.style.display = 'flex';
+        
+        let url = '';
+        let chartTitle = '';
+        let chartType = 'bar';
+
+        if (type === 'attendance') {
+            url = '/admin/api/charts/attendance';
+            chartTitle = 'Attendance Distribution';
+        } else if (type === 'fees') {
+            url = '/admin/api/charts/fees';
+            chartTitle = 'Fees Status (Paid vs Pending)';
+            chartType = 'pie';
+        } else if (type === 'chats') {
+            url = '/admin/api/charts/chats';
+            chartTitle = 'Chat Interaction Distribution (Top 5)';
+            chartType = 'doughnut';
+        }
+
+        title.innerText = chartTitle;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const config = {
+                type: chartType,
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: type === 'attendance' ? 'Number of Students' : 'Interaction Count',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(0, 255, 195, 0.6)',
+                            'rgba(124, 58, 237, 0.6)',
+                            'rgba(6, 182, 212, 0.6)',
+                            'rgba(244, 114, 182, 0.6)',
+                            'rgba(255, 206, 86, 0.6)'
+                        ],
+                        borderColor: [
+                            '#00ffc3',
+                            '#7c3aed',
+                            '#06b6d4',
+                            '#f472b6',
+                            '#ffce56'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: chartType !== 'bar',
+                            labels: {
+                                color: '#e2e8f0',
+                                font: { family: 'Poppins' }
+                            }
+                        }
+                    },
+                    scales: chartType === 'bar' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { display: false }
+                        }
+                    } : {}
+                }
+            };
+
+            myChart = new Chart(canvas, config);
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            alert('Failed to load chart data.');
+        }
+    }
+
+    function closeChartModal() {
+        document.getElementById('chartModal').style.display = 'none';
+    }
+
+    // Close modal on outside click
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('chartModal');
+        if (event.target == modal) {
+            closeChartModal();
+        }
+    });
+</script>
+
+<style>
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chart-btn {
+        background: rgba(0, 255, 195, 0.1) !important;
+        border: 1px solid rgba(0, 255, 195, 0.4) !important;
+        color: #00ffc3 !important;
+        cursor: pointer;
+    }
+    
+    .chart-btn:hover {
+        background: #00ffc3 !important;
+        color: #050b19 !important;
+        box-shadow: 0 0 15px rgba(0, 255, 195, 0.4);
+    }
+
+    /* Specific Chart Modal Styles */
+    .chart-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 6, 20, 0.85);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-modal-content {
+        background: linear-gradient(135deg, #0a143c, #070c28);
+        border: 1px solid rgba(132, 179, 255, 0.55);
+        border-radius: 24px;
+        width: 90%;
+        max-width: 800px;
+        padding: 30px;
+        position: relative;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 50px rgba(124, 58, 237, 0.15);
+        animation: popupFade 0.3s ease-out;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        border-bottom: 1px solid rgba(132, 179, 255, 0.2);
+        padding-bottom: 15px;
+    }
+
+    .modal-header h2 {
+        font-size: 20px;
+        margin: 0;
+        color: #fff;
+    }
+
+    .close {
+        color: #94a3b8;
+        font-size: 32px;
+        line-height: 1;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .close:hover {
+        color: white;
+    }
+
+    .chart-container {
+        height: 450px;
+        width: 100%;
+        position: relative;
+    }
+
+    @keyframes popupFade {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+</style>
 {% endblock %}
