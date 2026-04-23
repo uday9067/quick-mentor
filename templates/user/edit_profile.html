@@ -1,73 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="QuickMentor - Edit your profile.">
+    <meta name="theme-color" content="#050818">
+    <title>QuickMentor – Edit Profile</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/student_login.png') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <style>
+        :root {
+            --ink: #05050f;
+            --ink-soft: #0c0c1e;
+            --ink-raised: #111128;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-md: rgba(255, 255, 255, 0.07);
+            --glass-hi: rgba(255, 255, 255, 0.11);
+            --cyan: #00e5cc;
+            --violet: #7c5cfc;
+            --rose: #ff4d8d;
+            --amber: #ffb340;
+            --grad-primary: linear-gradient(135deg, var(--violet) 0%, var(--cyan) 100%);
+            --text-primary: #eef0fb;
+            --text-secondary: #8b90b8;
+            --text-muted: #4a5080;
+            --border: rgba(124, 92, 252, 0.18);
+            --border-hi: rgba(0, 229, 204, 0.3);
+            --shadow-card: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border);
+            --nav-h: 68px;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --radius-pill: 999px;
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --t-fast: 0.18s var(--ease-out);
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_profile.css') }}">
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .bg-scene {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-scene::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 90% 60% at 10% 20%, rgba(124, 92, 252, 0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 50% at 85% 75%, rgba(0, 229, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 50% 110%, rgba(255, 77, 141, 0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 100% 100% at 50% 50%, #080814 0%, #05050f 100%);
+        }
+
+        .bg-scene::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 1;
+            animation: drift linear infinite;
+        }
+
+        .orb-1 {
+            width: 420px;
+            height: 420px;
+            top: -120px;
+            left: -80px;
+            background: radial-gradient(circle, rgba(124, 92, 252, 0.2), transparent 70%);
+            animation-duration: 40s;
+        }
+
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            bottom: -80px;
+            right: -60px;
+            background: radial-gradient(circle, rgba(0, 229, 204, 0.15), transparent 70%);
+            animation-duration: 32s;
+            animation-direction: reverse;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(30px, -20px) rotate(90deg);
+            }
+
+            50% {
+                transform: translate(-20px, 40px) rotate(180deg);
+            }
+
+            75% {
+                transform: translate(40px, 20px) rotate(270deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-h);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            background: rgba(5, 5, 15, 0.75);
+            backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+            opacity: 0.4;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-logo-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--grad-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 0 20px rgba(124, 92, 252, 0.5), 0 0 40px rgba(0, 229, 204, 0.15);
+        }
+
+        .nav-logo-mark::before {
+            content: '⚡';
+            font-size: 15px;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+        }
+
+        .nav-logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 17px;
+            letter-spacing: 0.02em;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--t-fast);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: var(--glass-md);
+        }
+
+        .profile-shell {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            padding-top: calc(var(--nav-h) + 24px);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: calc(var(--nav-h) + 24px) 24px 24px;
+        }
+
+        .profile-card {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(8, 8, 22, 0.9);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(24px);
+            padding: 32px;
+            position: relative;
+            animation: riseUp 0.6s var(--ease-out) forwards;
+        }
+
+        @keyframes riseUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--violet) 30%, var(--cyan) 70%, transparent 100%);
+            opacity: 0.6;
+        }
+
+        .profile-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .flash-area {
+            margin-bottom: 20px;
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .flash.success {
+            background: rgba(0, 229, 204, 0.1);
+            border: 1px solid rgba(0, 229, 204, 0.3);
+            color: var(--cyan);
+        }
+
+        .flash.error {
+            background: rgba(255, 77, 141, 0.1);
+            border: 1px solid rgba(255, 77, 141, 0.3);
+            color: var(--rose);
+        }
+
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .profile-form label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .profile-form input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--glass);
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color var(--t-fast), box-shadow var(--t-fast);
+        }
+
+        .profile-form input:focus {
+            border-color: rgba(124, 92, 252, 0.5);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1), 0 8px 32px rgba(124, 92, 252, 0.15);
+        }
+
+        .profile-form input[readonly] {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .profile-form input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .profile-actions button {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            background: var(--grad-primary);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            box-shadow: 0 0 24px rgba(124, 92, 252, 0.4);
+            transition: var(--t-fast);
+        }
+
+        .profile-actions button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 32px rgba(124, 92, 252, 0.6);
+        }
+
+        .profile-actions a {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--glass);
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: var(--t-fast);
+        }
+
+        .profile-actions a:hover {
+            background: var(--glass-md);
+            border-color: var(--border-hi);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 520px) {
+            .profile-shell {
+                padding: calc(var(--nav-h) + 16px) 16px 16px;
+            }
+
+            .profile-card {
+                padding: 24px 20px;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div class="bg-gradient"></div>
+    <div class="bg-scene"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
     <canvas id="particles"></canvas>
-    
-    <div class="profile-container">
-        <h2>Edit Profile</h2>
-        <div class="bg-gradient"></div>
-    
-    
-        <form method="POST" action="{{ url_for('profile.update_profile') }}">
-    
-            <label>Roll Number</label>
-            <input type="text" value="{{ student.roll }}" readonly>
-            
-            <!-- Name (Editable) -->
-            <label>Name</label>
-            <input type="text" name="name" value="{{ student.name }}" required>
-            
-            <!-- Department (Read-only) -->
-            <label>Department</label>
-            <input type="text" value="{{ student.department }}" readonly>
-            
-            <!-- Year (Read-only) -->
-            <label>Year</label>
-            <input type="number" value="{{ student.year }}" readonly>
-            
-            <!-- Email (Editable) -->
-            <label>Email</label>
-            <input type="email" name="email" value="{{ student.email }}" required>
-            
-            <div class="profile-actions">
-                <button type="submit">Save Changes</button>
-                <a href="{{ url_for('main.home') }}">Cancel</a>
+
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo-mark"></div>
+            <span class="nav-logo-text">QuickMentor</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('main.home') }}">Home</a>
+            <a href="/chat">Chat</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <div class="profile-shell">
+        <div class="profile-card">
+            <h2 class="profile-title">Edit Profile</h2>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-area">
+                {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
             </div>
-        </form>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('profile.update_profile') }}" class="profile-form">
+                <label>Roll Number</label>
+                <input type="text" value="{{ student.roll }}" readonly>
+
+                <label>Name</label>
+                <input type="text" name="name" value="{{ student.name }}" required>
+
+                <label>Department</label>
+                <input type="text" value="{{ student.department }}" readonly>
+
+                <label>Year</label>
+                <input type="number" value="{{ student.year }}" readonly>
+
+                <label>Email</label>
+                <input type="email" name="email" value="{{ student.email }}" required>
+
+                <div class="profile-actions">
+                    <button type="submit">Save Changes</button>
+                    <a href="{{ url_for('main.home') }}">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-<script>
+
+    <script>
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-        const particles = []; const particleCount = 70;
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+
+        const COUNT = 55;
         class Particle {
-            constructor() { this.reset(); this.y = Math.random() * canvas.height; }
-            reset() { this.x = Math.random() * canvas.width; this.y = -10; this.size = Math.random() * 2 + 0.5; this.speedY = Math.random() * 0.8 + 0.3; this.speedX = (Math.random() - 0.5) * 0.4; this.opacity = Math.random() * 0.5 + 0.2; }
-            update() { this.y += this.speedY; this.x += this.speedX; if (this.y > canvas.height || this.x < 0 || this.x > canvas.width) this.reset(); }
-            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(0, 255, 204, ${this.opacity})`; ctx.fill(); }
+            constructor(rnd = false) { this.init(rnd); }
+            init(rnd = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = rnd ? Math.random() * canvas.height : -10;
+                this.size = Math.random() * 1.5 + 0.4;
+                this.vy = Math.random() * 0.6 + 0.2;
+                this.vx = (Math.random() - 0.5) * 0.25;
+                this.alpha = Math.random() * 0.4 + 0.1;
+                this.hue = Math.random() > 0.5 ? [99, 102, 241] : [34, 211, 238];
+            }
+            update() {
+                this.y += this.vy;
+                this.x += this.vx;
+                if (this.y > canvas.height + 10 || this.x < -10 || this.x > canvas.width + 10) this.init(false);
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.hue[0]},${this.hue[1]},${this.hue[2]},${this.alpha})`;
+                ctx.fill();
+            }
         }
-        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
-        function connectParticles() {
+        const particles = Array.from({ length: COUNT }, () => new Particle(true));
+        function drawConnections() {
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y, dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 120) { ctx.beginPath(); ctx.strokeStyle = `rgba(0, 255, 204, ${0.15 * (1 - dist / 120)})`; ctx.lineWidth = 0.5; ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); }
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(99,102,241,${(1 - dist / 110) * 0.08})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
                 }
             }
         }
-        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connectParticles(); requestAnimationFrame(animate); }
-        animate();
+        function frame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawConnections();
+            requestAnimationFrame(frame);
+        }
+        frame();
+
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 3000);
     </script>
 </body>
+
 </html>

@@ -1,3 +1,5 @@
+from models.message_model import MessageModel
+from models.chat_model import ChatModel
 from flask import Blueprint, request, jsonify, session
 from werkzeug.utils import secure_filename
 import os
@@ -27,6 +29,9 @@ def get_response():
     user_msg = user_msg.strip()
 
     file = request.files.get("file")
+    chatId = request.form.get("chatId") or \
+                (request.get_json(silent=True) or {}).get("chatId", "")
+    chatId = chatId.strip() if chatId else ""
 
     roll = session.get("user_roll")
     if not roll:
@@ -111,7 +116,16 @@ QUESTION:
         except Exception:
             final_reply = ask_local_llm(final_prompt)
 
-        return jsonify({"reply": final_reply})
+        if chatId:
+            # Check if chat needs renaming (first interaction)
+            existing_msgs = MessageModel.get_by_chat_id(chatId)
+            if len(existing_msgs) == 0:
+                new_name = (user_msg[:30] + "...") if len(user_msg) > 30 else user_msg
+                ChatModel.update_name(chatId, new_name)
+
+            MessageModel.create(userId=roll, chatId=chatId, content=user_msg, isResponse=False)
+            MessageModel.create(userId=roll, chatId=chatId, content=final_reply, isResponse=True)
+        return jsonify({"reply": final_reply, "chatId": chatId})
 
     if not user_msg:
         return jsonify({"reply": "Please enter a message."})
@@ -136,4 +150,74 @@ QUESTION:
         source=source
     )
 
-    return jsonify({"reply": reply})
+    if chatId:
+        # Check if chat needs renaming (first message)
+        existing_msgs = MessageModel.get_by_chat_id(chatId)
+        if len(existing_msgs) == 0: # This is the first message (we haven't saved it yet)
+            new_name = (user_msg[:30] + "...") if len(user_msg) > 30 else user_msg
+            ChatModel.update_name(chatId, new_name)
+        
+        MessageModel.create(userId=roll, chatId=chatId, content=user_msg, isResponse=False)
+        MessageModel.create(userId=roll, chatId=chatId, content=reply, isResponse=True)
+
+    return jsonify({"reply": reply, "chatId": chatId})
+
+
+# ─── Chat CRUD API ───────────────────────────────────────────────────────────
+
+@chat.route("/api/chats", methods=["GET"])
+def list_chats():
+    roll = session.get("user_roll")
+    if not roll:
+        return jsonify({"error": "Unauthorized"}), 401
+    rows = ChatModel.get_all_by_user(roll)
+    return jsonify([{"id": r.id, "name": r.name, "timestamps": str(r.timestamps)} for r in rows])
+
+
+@chat.route("/api/chats", methods=["POST"])
+def create_chat():
+    roll = session.get("user_roll")
+    if not roll:
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "New Chat").strip() or "New Chat"
+    chat_id = ChatModel.create(name=name, user_roll=roll)
+    return jsonify({"id": chat_id, "name": name}), 201
+
+
+@chat.route("/api/chats/<chat_id>/messages", methods=["GET"])
+def get_chat_messages(chat_id):
+    roll = session.get("user_roll")
+    if not roll:
+        return jsonify({"error": "Unauthorized"}), 401
+    rows = MessageModel.get_by_chat_id(chat_id)
+    return jsonify([{
+        "id": r.id,
+        "content": r.content,
+        "isResponse": bool(r.isResponse),
+        "timestamps": str(r.timestamps)
+    } for r in rows])
+
+
+@chat.route("/api/chats/<chat_id>", methods=["DELETE"])
+def delete_chat(chat_id):
+    roll = session.get("user_roll")
+    if not roll:
+        return jsonify({"error": "Unauthorized"}), 401
+    ChatModel.delete(chat_id)
+    return jsonify({"ok": True})
+
+
+@chat.route("/api/chats/<chat_id>/rename", methods=["POST"])
+def rename_chat(chat_id):
+    roll = session.get("user_roll")
+    if not roll:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.get_json(silent=True) or {}
+    new_name = data.get("name", "").strip()
+    if not new_name:
+        return jsonify({"error": "Name cannot be empty"}), 400
+    
+    ChatModel.update_name(chat_id, new_name)
+    return jsonify({"ok": True, "name": new_name})

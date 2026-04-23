@@ -1,39 +1,75 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Welcome, Admin <span class="wave">👋</span></h1>
+        <p class="page-subtitle">Your college data at a glance. Monitor students, fees, and system health in one place.</p>
+        <p class="page-date">Live Dashboard · Updated just now</p>
+    </div>
+</div>
 
-<!-- Page Heading -->
-<h1>Welcome, Admin 👋</h1>
-<p class="subtitle">Here is a quick overview of your college data.</p>
-
-<!-- Stats Overview -->
 <section class="stats-grid">
     <div class="stat-card">
-        <p class="label">Students</p>
+        <div class="stat-card-icon">👥</div>
+        <p class="label">Total Students</p>
         <p class="value">{{ stats.students }}</p>
+        <p class="stat-card-sub">Enrolled in system</p>
     </div>
 
     <div class="stat-card">
+        <div class="stat-card-icon">💳</div>
         <p class="label">Fee Records</p>
         <p class="value">{{ stats.fees }}</p>
+        <p class="stat-card-sub">Total fee entries</p>
     </div>
 
     <div class="stat-card">
+        <div class="stat-card-icon">📅</div>
         <p class="label">Timetable Slots</p>
         <p class="value">{{ stats.timetable }}</p>
+        <p class="stat-card-sub">Class schedules</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon">⚠️</div>
+        <p class="label">Low Attendance</p>
+        <p class="value warn">{{ low_attendance_students|length if low_attendance_students else 0 }}</p>
+        <p class="stat-card-sub">Students flagged</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon">💰</div>
+        <p class="label">Pending Fees</p>
+        <p class="value warn">{{ pending_fee_students|length if pending_fee_students else 0 }}</p>
+        <p class="stat-card-sub">Students with dues</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon">💬</div>
+        <p class="label">Chat Logs</p>
+        <p class="value">→</p>
+        <p class="stat-card-sub">View all interactions</p>
     </div>
 </section>
 
-<!-- Low Attendance Panel -->
 <section class="panel">
-
     <div class="panel-header">
-        <h2>⚠️ Students with Low Attendance</h2>
-
-        <a href="{{ url_for('admin.download_low_attendance_pdf') }}" title="Download PDF" class="simple-form">
-            <button type="button">Download PDF</button>
-        </a>
-
+        <h2>
+            <span class="icon">⚠️</span>
+            Students with Low Attendance
+            {% if low_attendance_students %}
+            <span class="count-badge">{{ low_attendance_students|length }}</span>
+            {% endif %}
+        </h2>
+        <div class="header-actions">
+            <button type="button" onclick="showChart('attendance')" class="chart-btn">
+                📊 Show Chart
+            </button>
+            <a href="{{ url_for('admin.download_low_attendance_pdf') }}" class="simple-form">
+                <button type="button">⬇ Download PDF</button>
+            </a>
+        </div>
     </div>
 
     {% if low_attendance_students %}
@@ -41,11 +77,11 @@
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th>
+                    <th>Roll No.</th>
                     <th>Name</th>
                     <th>Department</th>
                     <th>Year</th>
-                    <th>Attendance (%)</th>
+                    <th>Attendance</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,29 +91,34 @@
                     <td>{{ s.name }}</td>
                     <td>{{ s.department }}</td>
                     <td>{{ s.year }}</td>
-                    <td class="danger">
-                        {{ s.attendance }}
-                    </td>
+                    <td class="danger">{{ s.attendance }}%</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <p class="panel-empty">🎉 No students with low attendance.</p>
+    <div class="panel-empty">No students found with low attendance. All students are performing well!</div>
     {% endif %}
 </section>
 
-
-<!-- Pending Fees Panel -->
 <section class="panel">
-
     <div class="panel-header">
-        <h2>💰 Students with Pending Fees</h2>
-
-        <a href="{{ url_for('admin.download_pending_fees_pdf') }}" title="Download PDF" class="simple-form">
-            <button type="button">Download PDF</button>
-        </a>
+        <h2>
+            <span class="icon">💰</span>
+            Students with Pending Fees
+            {% if pending_fee_students %}
+            <span class="count-badge">{{ pending_fee_students|length }}</span>
+            {% endif %}
+        </h2>
+        <div class="header-actions">
+            <button type="button" onclick="showChart('fees')" class="chart-btn">
+                📊 Show Chart
+            </button>
+            <a href="{{ url_for('admin.download_pending_fees_pdf') }}" class="simple-form">
+                <button type="button">⬇ Download PDF</button>
+            </a>
+        </div>
     </div>
 
     {% if pending_fee_students %}
@@ -85,7 +126,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th>
+                    <th>Roll No.</th>
                     <th>Name</th>
                     <th>Semester</th>
                     <th>Pending Amount</th>
@@ -98,9 +139,7 @@
                     <td>{{ f.roll }}</td>
                     <td>{{ f.name }}</td>
                     <td>{{ f.semester }}</td>
-                    <td class="warning">
-                        ₹{{ f.pending_amount }}
-                    </td>
+                    <td class="warning">₹{{ f.pending_amount }}</td>
                     <td>{{ f.due_date }}</td>
                 </tr>
                 {% endfor %}
@@ -108,54 +147,219 @@
         </table>
     </div>
     {% else %}
-    <p class="panel-empty">🎉 No pending fee records.</p>
+    <div class="panel-empty">All fee records are clear! No pending dues found.</div>
     {% endif %}
 </section>
 
-<!-- Chat Logs Shortcut -->
 <section class="panel">
-    <h2>💬 Chat Logs</h2>
-    <p>Monitor chatbot usage and student interactions.</p>
     <div class="panel-header">
-        <a href="{{ url_for('admin.chat_logs') }}" class="simple-form">
-            <button type="submit" title="Chat Logs">View Chat Logs →</button>
-        </a>
+        <h2>
+            <span class="icon">💬</span>
+            Chat Interactions
+        </h2>
+        <div class="header-actions">
+            <button type="button" onclick="showChart('chats')" class="chart-btn">
+                📊 Show Chart
+            </button>
+            <a href="{{ url_for('admin.chat_logs') }}" class="simple-form">
+                <button type="button">View Chat Logs →</button>
+            </a>
+        </div>
     </div>
-
+    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+        Monitor chatbot usage and student interactions across all sessions.
+    </p>
 </section>
 
 <section class="panel">
-    <h2>🖥️ System Status</h2>
-
-    <table>
-        <tr>
-            <th>Service</th>
-            <th>Status</th>
-        </tr>
-
-        <tr>
-            <td>Database</td>
-            <td class="{{ 'ok' if system_status['database'] == 'UP' else 'fail' }}">
-                {{ system_status['database'] }}
-            </td>
-        </tr>
-
-        <tr>
-            <td>Email Service</td>
-            <td class="{{ 'ok' if system_status['email'] == 'CONFIGURED' else 'fail' }}">
-                {{ system_status['email'] }}
-            </td>
-        </tr>
-
-        <tr>
-            <td>AI Service</td>
-            <td class="{{ 'ok' if system_status['ai'] == 'AVAILABLE' else 'fail' }}">
-                {{ system_status['ai'] }}
-            </td>
-        </tr>
-    </table>
+    <div class="panel-header">
+        <h2>
+            <span class="icon">🖥️</span>
+            System Status
+        </h2>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 14px;">🗄️</span> Database
+                        </span>
+                    </td>
+                    <td class="{{ 'ok' if system_status['database'] == 'UP' else 'fail' }}">
+                        {{ system_status['database'] }}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 12px;">
+                        {{ 'Connected and healthy' if system_status['database'] == 'UP' else 'Connection failed' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 14px;">📧</span> Email Service
+                        </span>
+                    </td>
+                    <td class="{{ 'ok' if system_status['email'] == 'CONFIGURED' else 'fail' }}">
+                        {{ system_status['email'] }}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 12px;">
+                        {{ 'SMTP ready' if system_status['email'] == 'CONFIGURED' else 'Not configured' }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 14px;">🤖</span> AI Service
+                        </span>
+                    </td>
+                    <td class="{{ 'ok' if system_status['ai'] == 'AVAILABLE' else 'fail' }}">
+                        {{ system_status['ai'] }}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 12px;">
+                        {{ 'Model responding' if system_status['ai'] == 'AVAILABLE' else 'Service unavailable' }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </section>
 
+<div id="chartModal" class="modal chart-modal-overlay">
+    <div class="chart-modal-content">
+        <div class="modal-header">
+            <h2 id="chartTitle">Data Chart</h2>
+            <button class="close" onclick="closeChartModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="dataChart"></canvas>
+        </div>
+    </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let myChart = null;
 
+    async function showChart(type) {
+        const modal = document.getElementById('chartModal');
+        const title = document.getElementById('chartTitle');
+        const canvas = document.getElementById('dataChart');
+        
+        modal.style.display = 'flex';
+        
+        let url = '';
+        let chartTitle = '';
+        let chartType = 'bar';
+
+        if (type === 'attendance') {
+            url = '/admin/api/charts/attendance';
+            chartTitle = 'Attendance Distribution';
+        } else if (type === 'fees') {
+            url = '/admin/api/charts/fees';
+            chartTitle = 'Fees Status (Paid vs Pending)';
+            chartType = 'pie';
+        } else if (type === 'chats') {
+            url = '/admin/api/charts/chats';
+            chartTitle = 'Chat Interaction Distribution (Top 5)';
+            chartType = 'doughnut';
+        }
+
+        title.innerText = chartTitle;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const config = {
+                type: chartType,
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: type === 'attendance' ? 'Number of Students' : 'Interaction Count',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(0, 229, 204, 0.6)',
+                            'rgba(124, 92, 252, 0.6)',
+                            'rgba(6, 182, 212, 0.6)',
+                            'rgba(244, 114, 182, 0.6)',
+                            'rgba(255, 206, 86, 0.6)'
+                        ],
+                        borderColor: [
+                            '#00e5cc',
+                            '#7c5cfc',
+                            '#06b6d4',
+                            '#f472b6',
+                            '#ffce56'
+                        ],
+                        borderWidth: 1.5,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: chartType !== 'bar',
+                            labels: {
+                                color: '#8b90b8',
+                                font: { family: 'DM Sans', size: 12 },
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(8, 8, 22, 0.95)',
+                            titleColor: '#eef0fb',
+                            bodyColor: '#8b90b8',
+                            borderColor: 'rgba(124, 92, 252, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 12
+                        }
+                    },
+                    scales: chartType === 'bar' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#4a5080', font: { family: 'DM Sans' } },
+                            grid: { color: 'rgba(124, 92, 252, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#8b90b8', font: { family: 'DM Sans' } },
+                            grid: { display: false }
+                        }
+                    } : {}
+                }
+            };
+
+            myChart = new Chart(canvas, config);
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            alert('Failed to load chart data.');
+        }
+    }
+
+    function closeChartModal() {
+        document.getElementById('chartModal').style.display = 'none';
+        if (myChart) { myChart.destroy(); myChart = null; }
+    }
+
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('chartModal');
+        if (event.target === modal) {
+            closeChartModal();
+        }
+    });
+</script>
 {% endblock %}

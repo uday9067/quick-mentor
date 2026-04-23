@@ -4,27 +4,32 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="QuickMentor - Your personal academic assistant. Get instant answers about attendance, fees, timetable, and more.">
-    <meta name="theme-color" content="#050818">
+    <meta name="description"
+        content="QuickMentor - Your personal academic assistant. Get instant answers about attendance, fees, timetable, and more.">
+    <meta name="theme-color" content="#08090f">
     <title>QuickMentor – Home</title>
     <link rel="icon" type="image/png" sizes="98x98" href="{{ url_for('static', filename='images/home.png') }}">
 
-    <!-- Google Font (optional but looks premium) -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
         rel="stylesheet">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-
 </head>
 
 <body>
 
+    <!-- Floating profile button (logged in only) -->
     {% if session.get("user_logged_in") %}
     <a href="{{ url_for('profile.edit_profile') }}" class="profile-fab" title="Edit Profile">
-        <img src="static\images\profile_image.png" style="width: 35px; height: auto;">
+        <img src="static/images/profile_image.png" alt="Profile">
     </a>
     {% endif %}
 
+    <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=True) %}
     {% if messages %}
     <div class="flash-container">
@@ -38,125 +43,215 @@
     {% endif %}
     {% endwith %}
 
-    <!-- Animated gradient background overlay -->
-    <div class="bg-gradient"></div>
-    
-    <!-- Particle canvas -->
-    <canvas id="particles"></canvas>
+    <!-- Background layers -->
+    <div class="bg-gradient" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-noise" aria-hidden="true"></div>
 
-    <!-- Top Navigation -->
-    <header class="nav">
+    <!-- Particle canvas -->
+    <canvas id="particles" aria-hidden="true"></canvas>
+
+    <!-- ======================== NAVBAR ======================== -->
+    <header class="nav" id="navbar">
         <div class="nav-left">
-            <div class="nav-logo-circle"></div>
+            <div class="nav-logo-circle" aria-hidden="true"></div>
             <span class="nav-logo-text">QuickMentor</span>
         </div>
 
-        <input type="checkbox" id="menu-toggle">
-        <label for="menu-toggle" class="nav-burger">
+        <input type="checkbox" id="menu-toggle" aria-hidden="true">
+        <label for="menu-toggle" class="nav-burger" aria-label="Toggle menu">
             <span></span><span></span><span></span>
         </label>
 
-        <nav class="nav-links">
+        <nav class="nav-links" aria-label="Main navigation">
             <a href="/">Home</a>
             <a href="/chat">Chatbot</a>
+
+            <div class="nav-sep" aria-hidden="true"></div>
+
             <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
                 <span class="theme-icon">🌙</span>
             </button>
 
             {% if session.get('user_logged_in') %}
-            <span class="welcome-text">Hi, {{ session.get('user_name') }}</span>
+            <span class="welcome-text">Hi, {{ session.get('user_name') }} 👋</span>
             <a href="/logout" class="pill-logout">Logout</a>
             {% else %}
 
             <div class="pill-auth">
-
                 <!-- LOGIN DROPDOWN -->
                 <div class="login-dropdown">
-                    <a class="login-btn">Login ▾</a>
-
-                    <div class="dropdown-menu">
-                        <a href="/login">Student Login</a>
-                        <a href="/admin/login">Admin Login</a>
+                    <a class="login-btn" tabindex="0" aria-haspopup="true" aria-expanded="false">Login ▾</a>
+                    <div class="dropdown-menu" role="menu">
+                        <a href="/login" role="menuitem">Student Login</a>
+                        <a href="/admin/login" role="menuitem">Admin Login</a>
                     </div>
                 </div>
 
-                <span class="divider"></span>
+                <span class="divider" aria-hidden="true"></span>
 
                 <!-- REGISTER -->
-                <a href="/register">Register</a>
+                <a href="/register" class="pill-register">Register</a>
             </div>
+
             {% endif %}
-
-
-
         </nav>
-
     </header>
 
-    <!-- Hero Section -->
-    <main class="hero">
+    <!-- ======================== HERO ======================== -->
+    <main class="hero" aria-label="Hero section">
+
+        <!-- Left: Content -->
         <section class="hero-content">
-            <p class="hero-kicker">Smart • Modern • Personal</p>
+
+            <p class="hero-kicker">Smart · Modern · Personal</p>
+
             <h1 class="hero-title">
-                Your Academic<br>
-                <span>Assistant</span>
+                Your Academic
+                <span class="line-2"><span class="grad">Assistant</span></span>
             </h1>
 
             <p class="hero-subtitle">
-                Get instant answers about attendance, fees, timetable, and more.<br>
-                Your all-in-one academic companion powered by AI.
+                Get instant answers about attendance, fees, timetable, and more.
+                Your all-in-one academic companion, powered by AI.
             </p>
 
             <div class="hero-buttons">
-                <a href="/chat" class="btn primary">Start Chatting</a>
-
+                <a href="/chat" class="btn primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    Start Chatting
+                </a>
+                <a href="/register" class="btn ghost">
+                    Get Started Free
+                </a>
             </div>
-        </section>
 
-        <section class="hero-card">
-            <div class="hero-card-inner">
-                <p class="card-label">LIVE ASSISTANT</p>
-                <p class="card-title">Always here to help.</p>
-                <p class="card-body">
-                    Get instant answers about your attendance, pending fees,
-                    class timetable, grades, and more — right from your college database.
-                </p>
-                <div class="card-stats">
-                    <div>
-                        <span class="stat-number">24/7</span>
-                        <span class="stat-label">Online</span>
-                    </div>
-                    <div>
-                        <span class="stat-number">3</span>
-                        <span class="stat-label">Data Types</span>
-                    </div>
-                    <div>
-                        <span class="stat-number">AI</span>
-                        <span class="stat-label">Smart</span>
-                    </div>
+            <!-- Stat strip -->
+            <div class="stat-strip" aria-label="Key statistics">
+                <div class="stat-item">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Always Online</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">AI</div>
+                    <div class="stat-label">Powered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">3+</div>
+                    <div class="stat-label">Data Sources</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0s</div>
+                    <div class="stat-label">Wait Time</div>
                 </div>
             </div>
+
         </section>
+
+        <!-- Right: Glass card -->
+        <section class="hero-card" aria-label="Live assistant preview">
+            <div class="hero-card-inner">
+
+                <!-- Ambient glow -->
+                <div class="card-glow" aria-hidden="true"></div>
+
+                <!-- macOS-style chrome bar -->
+                <div class="card-chrome">
+                    <div class="chrome-dot red" aria-hidden="true"></div>
+                    <div class="chrome-dot amber" aria-hidden="true"></div>
+                    <div class="chrome-dot green" aria-hidden="true"></div>
+                    <span class="chrome-title">quickmentor.ai</span>
+                </div>
+
+                <!-- Card content -->
+                <div class="card-body-wrapper">
+                    <p class="card-label">Live Assistant</p>
+
+                    <p class="card-title">Always here to help.</p>
+
+                    <p class="card-body">
+                        Get instant answers about your attendance, pending fees,
+                        class timetable, grades, and more — directly from your college database.
+                    </p>
+
+                    <!-- Feature checklist -->
+                    <div class="card-checklist" aria-label="Features">
+                        <div class="checklist-item">
+                            <div class="check-icon ok" aria-hidden="true">✓</div>
+                            <span>Attendance & fee tracking</span>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="check-icon ai" aria-hidden="true">✦</div>
+                            <span>AI-powered natural language queries</span>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="check-icon live" aria-hidden="true">●</div>
+                            <span>Live timetable & grade updates</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats row -->
+                    <div class="card-stats">
+                        <div class="stat-box">
+                            <span class="stat-number">24/7</span>
+                            <span class="stat-label">Online</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-number">3</span>
+                            <span class="stat-label">Data Types</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-number">AI</span>
+                            <span class="stat-label">Smart</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
     </main>
 
+    <!-- ======================== FEATURE PILLS ======================== -->
+    <section class="feature-strip" aria-label="Feature highlights">
+        <div class="feature-pill">Attendance Tracking</div>
+        <div class="feature-pill">Fee Status</div>
+        <div class="feature-pill">Class Timetable</div>
+        <div class="feature-pill">Grade Reports</div>
+        <div class="feature-pill">AI Chat</div>
+        <div class="feature-pill">Admin Dashboard</div>
+        <div class="feature-pill">Instant Answers</div>
+    </section>
+
+
+    <!-- ======================== SCRIPTS ======================== -->
 
     <script>
-        // Auto hide flash messages after 3 seconds
+        // ── Navbar scroll shadow ──────────────────────────────
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 10);
+        }, { passive: true });
+
+        // ── Flash auto-dismiss (3s) ───────────────────────────
         setTimeout(() => {
-            document.querySelectorAll(".flash-message").forEach(msg => {
-                msg.style.opacity = "0";
-                msg.style.transform = "translateY(-10px)";
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateX(100%)';
                 setTimeout(() => msg.remove(), 300);
             });
         }, 3000);
 
-        // Theme toggle with 3 options: dark, light, system
+        // ── Theme toggle (dark → light → system) ─────────────
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = themeToggle.querySelector('.theme-icon');
-        const themes = ['light', 'system', 'dark'];
+        const themes = ['dark', 'light', 'system'];
         const icons = { dark: '🌙', light: '☀️', system: '💻' };
-        
-        function setTheme(theme) {
+
+        function applyTheme(theme) {
             document.body.classList.remove('light-mode', 'system-mode');
             if (theme === 'light') {
                 document.body.classList.add('light-mode');
@@ -168,99 +263,92 @@
             themeIcon.textContent = icons[theme];
             localStorage.setItem('theme', theme);
         }
-        
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        
+
+        applyTheme(localStorage.getItem('theme') || 'dark');
+
         themeToggle.addEventListener('click', () => {
-            const current = localStorage.getItem('theme') || 'dark';
-            const nextIndex = (themes.indexOf(current) + 1) % 3;
-            setTheme(themes[nextIndex]);
+            const cur = localStorage.getItem('theme') || 'dark';
+            const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+            applyTheme(next);
         });
     </script>
 
-    <!-- Particle Animation -->
+    <!-- Particle System -->
     <script>
-        const canvas = document.getElementById('particles');
-        const ctx = canvas.getContext('2d');
-        
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        (function () {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
 
-        const particles = [];
-        const particleCount = 70;
-        
-        class Particle {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * canvas.height;
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             }
-            
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = -10;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedY = Math.random() * 0.8 + 0.3;
-                this.speedX = (Math.random() - 0.5) * 0.4;
-                this.opacity = Math.random() * 0.5 + 0.2;
-            }
-            
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                
-                if (this.y > canvas.height || this.x < 0 || this.x > canvas.width) {
-                    this.reset();
+            resize();
+            window.addEventListener('resize', resize, { passive: true });
+
+            const COUNT = 55;
+            const COLOR_DARK = [99, 102, 241];
+            const COLOR_LIGHT = [34, 211, 238];
+
+            class Particle {
+                constructor(randomY = false) {
+                    this.init(randomY);
+                }
+                init(randomY = false) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = randomY ? Math.random() * canvas.height : -10;
+                    this.size = Math.random() * 1.5 + 0.4;
+                    this.vy = Math.random() * 0.6 + 0.2;
+                    this.vx = (Math.random() - 0.5) * 0.25;
+                    this.alpha = Math.random() * 0.4 + 0.1;
+                    this.hue = Math.random() > 0.5 ? COLOR_DARK : COLOR_LIGHT;
+                }
+                update() {
+                    this.y += this.vy;
+                    this.x += this.vx;
+                    if (this.y > canvas.height + 10 || this.x < -10 || this.x > canvas.width + 10) {
+                        this.init(false);
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${this.hue[0]},${this.hue[1]},${this.hue[2]},${this.alpha})`;
+                    ctx.fill();
                 }
             }
-            
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(124, 58, 237, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
 
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
+            const particles = Array.from({ length: COUNT }, () => new Particle(true));
 
-        function connectParticles() {
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist < 120) {
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(124, 58, 237, ${0.1 * (1 - dist / 120)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
+            function drawConnections() {
+                const MAX_DIST = 110;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < MAX_DIST) {
+                            const a = (1 - dist / MAX_DIST) * 0.08;
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(99,102,241,${a})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
                     }
                 }
             }
-        }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            
-            connectParticles();
-            requestAnimationFrame(animate);
-        }
-        animate();
+            function frame() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                drawConnections();
+                requestAnimationFrame(frame);
+            }
+
+            frame();
+        })();
     </script>
 
 </body>

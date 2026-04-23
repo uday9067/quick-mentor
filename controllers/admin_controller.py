@@ -1,5 +1,5 @@
 # controllers/admin_controller.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from utils.decorators import admin_required
 from config import ADMIN_USER, ADMIN_PASS
 from models.student_model import StudentModel
@@ -607,3 +607,84 @@ def parse_csv_date(date_str):
         return datetime.strptime(date_str.strip(), "%d-%m-%Y").date()
     except ValueError:
         return None
+# -----------------------------------
+# Admin Chart Data APIs
+# -----------------------------------
+
+@admin.route("/api/charts/attendance")
+@admin_required
+def api_chart_attendance():
+    """
+    Returns data for attendance distribution chart
+    """
+    students = StudentModel.get_all()
+    
+    # Categorize students by attendance ranges
+    ranges = {
+        "Above 90%": 0,
+        "75% - 90%": 0,
+        "60% - 75%": 0,
+        "Below 60%": 0
+    }
+    
+    for s in students:
+        att = float(s.attendance or 0)
+        if att >= 90:
+            ranges["Above 90%"] += 1
+        elif att >= 75:
+            ranges["75% - 90%"] += 1
+        elif att >= 60:
+            ranges["60% - 75%"] += 1
+        else:
+            ranges["Below 60%"] += 1
+            
+    return jsonify({
+        "labels": list(ranges.keys()),
+        "data": list(ranges.values())
+    })
+
+
+@admin.route("/api/charts/fees")
+@admin_required
+def api_chart_fees():
+    """
+    Returns data for fee status chart (Paid vs Pending)
+    """
+    fees = FeeModel.get_all()
+    
+    total_due = 0
+    total_paid = 0
+    
+    for f in fees:
+        total_due += float(f.amount_due or 0)
+        total_paid += float(f.amount_paid or 0)
+        
+    pending = total_due - total_paid
+    
+    return jsonify({
+        "labels": ["Paid Amount", "Pending Amount"],
+        "data": [total_paid, pending if pending > 0 else 0]
+    })
+
+
+@admin.route("/api/charts/chats")
+@admin_required
+def api_chart_chats():
+    """
+    Returns data for chat activity (Intent distribution)
+    """
+    logs = ChatHistoryModel.get_recent(limit=500)
+    
+    intents = {}
+    for log in logs:
+        # Clean up intent name for labels
+        intent = log.intent.replace("_", " ").title()
+        intents[intent] = intents.get(intent, 0) + 1
+        
+    # Sort and get top 5
+    sorted_intents = sorted(intents.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    return jsonify({
+        "labels": [x[0] for x in sorted_intents],
+        "data": [x[1] for x in sorted_intents]
+    })

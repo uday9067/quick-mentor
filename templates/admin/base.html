@@ -3,29 +3,52 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Admin Panel</title>
+    <title>QuickMentor – Admin Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="QuickMentor Admin Panel – Manage students, fees, timetable, and system health.">
+    <meta name="theme-color" content="#050818">
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/admin_dashboard.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
 
 <body class="admin-body">
-    <div class="bg-gradient"></div>
+    <div class="bg-scene"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
     <canvas id="particles"></canvas>
 
-    <!-- ✅ SINGLE ADMIN NAVBAR -->
     <header class="admin-nav">
         <div class="nav-left">
-            <span class="nav-logo-text">ADMIN PANEL</span>
+            <div class="nav-logo-mark"></div>
+            <span class="nav-logo-text">QuickMentor</span>
+            <span class="nav-badge">Admin</span>
         </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="nav-burger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </label>
+
         <nav class="nav-links">
-            <a href="{{ url_for('admin.admin_dashboard') }}" title="Overview">Overview</a>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-dash-link" title="Overview">
+                <span class="nav-icon-text">⚡</span> Overview
+            </a>
             <a href="{{ url_for('admin.admin_students') }}" title="Students">Students</a>
             <a href="{{ url_for('admin.admin_timetable') }}" title="Timetable">Timetable</a>
             <a href="{{ url_for('admin.admin_fees') }}" title="Fees">Fees</a>
-            <a href="{{ url_for('admin.admin_logout') }}" title="Logout">Logout</a>
+            <a href="{{ url_for('admin.chat_logs') }}" title="Chat Logs">Chat Logs</a>
+            <div class="nav-sep"></div>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:18px;padding:4px 6px;border-radius:8px;transition:var(--t-fast);">
+                <span class="theme-icon">🌙</span>
+            </button>
+            <a href="{{ url_for('admin.admin_logout') }}" class="nav-logout" title="Logout">
+                <span class="logout-icon">↩</span> Logout
+            </a>
         </nav>
     </header>
 
@@ -47,28 +70,110 @@
     </main>
 
 <script>
+    (function () {
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-        const particles = []; const particleCount = 70;
-        class Particle {
-            constructor() { this.reset(); this.y = Math.random() * canvas.height; }
-            reset() { this.x = Math.random() * canvas.width; this.y = -10; this.size = Math.random() * 2 + 0.5; this.speedY = Math.random() * 0.8 + 0.3; this.speedX = (Math.random() - 0.5) * 0.4; this.opacity = Math.random() * 0.5 + 0.2; }
-            update() { this.y += this.speedY; this.x += this.speedX; if (this.y > canvas.height || this.x < 0 || this.x > canvas.width) this.reset(); }
-            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(0, 255, 204, ${this.opacity})`; ctx.fill(); }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
-        function connectParticles() {
+        resize();
+        window.addEventListener('resize', resize, { passive: true });
+
+        const COUNT = 55;
+        const COLOR_DARK = [124, 92, 252];
+        const COLOR_LIGHT = [0, 229, 204];
+
+        class Particle {
+            constructor(randomY = false) {
+                this.init(randomY);
+            }
+            init(randomY = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = randomY ? Math.random() * canvas.height : -10;
+                this.size = Math.random() * 1.5 + 0.4;
+                this.vy = Math.random() * 0.6 + 0.2;
+                this.vx = (Math.random() - 0.5) * 0.25;
+                this.alpha = Math.random() * 0.4 + 0.1;
+                this.hue = Math.random() > 0.5 ? COLOR_DARK : COLOR_LIGHT;
+            }
+            update() {
+                this.y += this.vy;
+                this.x += this.vx;
+                if (this.y > canvas.height + 10 || this.x < -10 || this.x > canvas.width + 10) {
+                    this.init(false);
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.hue[0]},${this.hue[1]},${this.hue[2]},${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        const particles = Array.from({ length: COUNT }, () => new Particle(true));
+
+        function drawConnections() {
+            const MAX_DIST = 110;
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y, dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 120) { ctx.beginPath(); ctx.strokeStyle = `rgba(0, 255, 204, ${0.15 * (1 - dist / 120)})`; ctx.lineWidth = 0.5; ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); }
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < MAX_DIST) {
+                        const a = (1 - dist / MAX_DIST) * 0.08;
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(124,92,252,${a})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
                 }
             }
         }
-        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); connectParticles(); requestAnimationFrame(animate); }
-        animate();
+
+        function frame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawConnections();
+            requestAnimationFrame(frame);
+        }
+
+        frame();
+    })();
+    </script>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = themeToggle?.querySelector('.theme-icon');
+        const themes = ['dark', 'light', 'system'];
+        const icons = { dark: '🌙', light: '☀️', system: '💻' };
+
+        function applyTheme(theme) {
+            document.body.classList.remove('light-mode', 'system-mode');
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+            } else if (theme === 'system') {
+                if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    document.body.classList.add('light-mode');
+                }
+            }
+            if (themeIcon) themeIcon.textContent = icons[theme];
+            localStorage.setItem('theme', theme);
+        }
+
+        applyTheme(localStorage.getItem('theme') || 'dark');
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const cur = localStorage.getItem('theme') || 'dark';
+                const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+                applyTheme(next);
+            });
+        }
     </script>
 </body>
 
