@@ -4,7 +4,8 @@
 <div class="page-header">
     <div class="page-header-left">
         <h1 class="page-title">Welcome, Admin <span class="wave">👋</span></h1>
-        <p class="page-subtitle">Your college data at a glance. Monitor students, fees, and system health in one place.</p>
+        <p class="page-subtitle">Your college data at a glance. Monitor students, fees, and system health in one place.
+        </p>
         <p class="page-date">Live Dashboard · Updated just now</p>
     </div>
 </div>
@@ -252,9 +253,9 @@
         const modal = document.getElementById('chartModal');
         const title = document.getElementById('chartTitle');
         const canvas = document.getElementById('dataChart');
-        
+
         modal.style.display = 'flex';
-        
+
         let url = '';
         let chartTitle = '';
         let chartType = 'bar';
@@ -355,7 +356,7 @@
         if (myChart) { myChart.destroy(); myChart = null; }
     }
 
-    window.addEventListener('click', function(event) {
+    window.addEventListener('click', function (event) {
         const modal = document.getElementById('chartModal');
         if (event.target === modal) {
             closeChartModal();
